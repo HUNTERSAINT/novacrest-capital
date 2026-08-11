@@ -3,13 +3,15 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Menu, X, Smartphone, Apple, Download } from "lucide-react";
+import { useInstallPrompt } from "@/hooks/use-install-prompt";
+import { Menu, X, Smartphone, Download, CheckCircle } from "lucide-react";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [appModalOpen, setAppModalOpen] = useState(false);
+  const { prompt, install, installed, platform } = useInstallPrompt();
 
   const isDarkBg = location === "/";
 
@@ -115,46 +117,65 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         <DialogContent className="bg-card border-white/10 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl text-white flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-primary" /> Novacrest Capital App
+              <Smartphone className="w-5 h-5 text-primary" /> Install Novacrest
             </DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Manage your portfolio, track investments, and stay on top of your account — all from your phone.
-          </p>
-          <div className="space-y-3 mt-2">
-            {/* Android APK */}
-            <a
-              href="/novacrest-capital.apk"
-              download
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-            >
-              <svg className="w-5 h-5 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.523 15.341 14.58 9.65a.5.5 0 0 0-.44-.262h-4.28a.5.5 0 0 0-.44.262l-2.943 5.69a.5.5 0 0 0 .44.738h10.167a.5.5 0 0 0 .44-.738ZM12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-1-5h2v2h-2v-2Zm0-8h2v6h-2V7Z"/>
-              </svg>
-              <div>
-                <p className="text-xs text-muted-foreground leading-none mb-0.5">Direct install for</p>
-                <p className="text-sm font-medium text-white">Android (APK)</p>
-              </div>
-              <Apple className="w-4 h-4 text-muted-foreground ml-auto" style={{ display: 'none' }} />
-            </a>
 
-            {/* iOS via Expo Go */}
-            <a
-              href="https://expo.dev/go"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-            >
-              <Apple className="w-5 h-5 text-primary shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground leading-none mb-0.5">Open with Expo Go on</p>
-                <p className="text-sm font-medium text-white">iPhone / iPad</p>
-              </div>
-            </a>
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-1">
-            Android: enable "Install unknown apps" in Settings before installing the APK.
-          </p>
+          {installed ? (
+            /* Already installed */
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <CheckCircle className="w-10 h-10 text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Novacrest is already installed on your device.
+              </p>
+            </div>
+          ) : platform === "ios" ? (
+            /* iOS — no install API, show Safari steps */
+            <div className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                Open this page in <strong className="text-white">Safari</strong>, then:
+              </p>
+              <ol className="space-y-3">
+                {[
+                  { n: 1, text: <>Tap the <strong className="text-white">Share</strong> button at the bottom of the screen</> },
+                  { n: 2, text: <>Scroll down and tap <strong className="text-white">"Add to Home Screen"</strong></> },
+                  { n: 3, text: <>Tap <strong className="text-white">Add</strong> — the app icon appears on your home screen</> },
+                ].map(({ n, text }) => (
+                  <li key={n} className="flex gap-3 items-start">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center mt-0.5">{n}</span>
+                    <span className="text-sm text-muted-foreground">{text}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : prompt ? (
+            /* Android / desktop — one-tap install */
+            <div className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                Install Novacrest directly on your device — no app store needed.
+              </p>
+              <Button
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium h-11 gap-2"
+                onClick={async () => {
+                  const accepted = await install();
+                  if (accepted) setAppModalOpen(false);
+                }}
+              >
+                <Download className="w-4 h-4" /> Install App
+              </Button>
+            </div>
+          ) : (
+            /* Prompt not yet fired (desktop Chrome needs HTTPS + engagement, or already installed) */
+            <div className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                Open this site in <strong className="text-white">Chrome on your phone</strong>, then tap <strong className="text-white">"Get the App"</strong> to install with one tap.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                On Android: Chrome will show an Install button automatically.<br/>
+                On iPhone: use Safari → Share → Add to Home Screen.
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

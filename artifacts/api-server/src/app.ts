@@ -80,6 +80,16 @@ if (process.env.NODE_ENV === "production") {
   // When running from repo root (Railway), go up from artifacts/api-server/dist/ to repo root.
   const frontendDist = path.resolve(__dirname, "../../../artifacts/kingsaint/dist/public");
 
+  // APK direct download — served before SPA static so it's never caught by index.html fallback
+  const apkPath = path.resolve(__dirname, "../../../public/novacrest-capital.apk");
+  app.get("/novacrest-capital.apk", (_req: Request, res: Response) => {
+    res.download(apkPath, "novacrest-capital.apk", (err) => {
+      if (err) {
+        res.status(404).json({ error: "APK not available yet — check back soon." });
+      }
+    });
+  });
+
   app.use(express.static(frontendDist));
 
   // SPA fallback — every non-API route returns index.html
