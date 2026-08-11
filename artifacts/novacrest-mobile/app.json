@@ -44,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5e6e9071-c927-43d0-855c-e8bd70974341"
+      }
+    },
+    "owner": "mazixxxs-team"
   }
 }
