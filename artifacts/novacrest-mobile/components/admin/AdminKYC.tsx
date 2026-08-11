@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, Modal,
   TextInput, ActivityIndicator, Alert, ScrollView, Image,
+  Share, Dimensions, StatusBar, Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +10,77 @@ import { useGetAdminKyc, useUpdateKycStatus } from '@workspace/api-client-react'
 import type { KycDocument } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { format } from 'date-fns';
+
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+
+/** Full-screen pinch-to-zoom image viewer */
+function ImageViewerModal({ uri, label, visible, onClose }: {
+  uri: string; label: string; visible: boolean; onClose: () => void;
+}) {
+  const handleShare = async () => {
+    try {
+      await Share.share({ message: label, url: uri });
+    } catch {
+      // user cancelled or share failed — silently ignore
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={false}
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <StatusBar hidden />
+      <View style={iv.container}>
+        {/* Pinch-to-zoom via ScrollView native zoom */}
+        <ScrollView
+          style={iv.scroll}
+          contentContainerStyle={iv.scrollContent}
+          maximumZoomScale={6}
+          minimumZoomScale={1}
+          centerContent
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          bouncesZoom
+        >
+          <Image
+            source={{ uri }}
+            style={{ width: SCREEN_W, height: SCREEN_H }}
+            resizeMode="contain"
+          />
+        </ScrollView>
+
+        {/* Top bar */}
+        <View style={iv.topBar}>
+          <TouchableOpacity style={iv.iconBtn} onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Feather name="x" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={iv.label} numberOfLines={1}>{label}</Text>
+          <TouchableOpacity style={iv.iconBtn} onPress={handleShare} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Feather name={Platform.OS === 'ios' ? 'share' : 'share-2'} size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const iv = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000' },
+  scroll: { flex: 1 },
+  scrollContent: { alignItems: 'center', justifyContent: 'center', flexGrow: 1 },
+  topBar: {
+    position: 'absolute', top: 0, left: 0, right: 0,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 54 : 38, paddingBottom: 12, paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  label: { flex: 1, color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'center', marginHorizontal: 8 },
+});
 
 type KFilter = 'all' | 'pending' | 'approved' | 'rejected';
 const KFILTERS: KFilter[] = ['all', 'pending', 'approved', 'rejected'];
@@ -25,6 +97,8 @@ function KycDetailModal({ kyc, visible, onClose, colors }: {
 }) {
   const [notes, setNotes] = useState(kyc?.adminNotes ?? '');
   const updateM = useUpdateKycStatus();
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
+  const [viewerLabel, setViewerLabel] = useState('');
 
   const handle = (status: 'approved' | 'rejected') => {
     if (!kyc) return;
@@ -69,23 +143,32 @@ function KycDetailModal({ kyc, visible, onClose, colors }: {
               </View>
             </View>
 
-            {/* Document images */}
+            {/* Document images — tap to open full-screen viewer */}
             {kyc.frontUrl && (
               <View style={s.docSection}>
                 <Text style={[s.docLabel, { color: colors.mutedForeground }]}>Front Document</Text>
-                <Image source={{ uri: kyc.frontUrl }} style={s.docImg} resizeMode="cover" />
+                <TouchableOpacity activeOpacity={0.85} onPress={() => { setViewerUri(kyc.frontUrl!); setViewerLabel('Front Document'); }}>
+                  <Image source={{ uri: kyc.frontUrl }} style={s.docImg} resizeMode="cover" />
+                  <View style={s.zoomHint}><Feather name="zoom-in" size={14} color="#fff" /><Text style={s.zoomTxt}>Tap to zoom</Text></View>
+                </TouchableOpacity>
               </View>
             )}
             {kyc.backUrl && (
               <View style={s.docSection}>
                 <Text style={[s.docLabel, { color: colors.mutedForeground }]}>Back Document</Text>
-                <Image source={{ uri: kyc.backUrl }} style={s.docImg} resizeMode="cover" />
+                <TouchableOpacity activeOpacity={0.85} onPress={() => { setViewerUri(kyc.backUrl!); setViewerLabel('Back Document'); }}>
+                  <Image source={{ uri: kyc.backUrl }} style={s.docImg} resizeMode="cover" />
+                  <View style={s.zoomHint}><Feather name="zoom-in" size={14} color="#fff" /><Text style={s.zoomTxt}>Tap to zoom</Text></View>
+                </TouchableOpacity>
               </View>
             )}
             {kyc.selfieUrl && (
               <View style={s.docSection}>
                 <Text style={[s.docLabel, { color: colors.mutedForeground }]}>Selfie</Text>
-                <Image source={{ uri: kyc.selfieUrl }} style={s.docImg} resizeMode="cover" />
+                <TouchableOpacity activeOpacity={0.85} onPress={() => { setViewerUri(kyc.selfieUrl!); setViewerLabel('Selfie'); }}>
+                  <Image source={{ uri: kyc.selfieUrl }} style={s.docImg} resizeMode="cover" />
+                  <View style={s.zoomHint}><Feather name="zoom-in" size={14} color="#fff" /><Text style={s.zoomTxt}>Tap to zoom</Text></View>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -122,6 +205,14 @@ function KycDetailModal({ kyc, visible, onClose, colors }: {
           </TouchableOpacity>
         </View>
       </View>
+      {viewerUri && (
+        <ImageViewerModal
+          uri={viewerUri}
+          label={viewerLabel}
+          visible={!!viewerUri}
+          onClose={() => setViewerUri(null)}
+        />
+      )}
     </Modal>
   );
 }
@@ -213,6 +304,8 @@ const ks = (c: ReturnType<typeof useColors>) => StyleSheet.create({
   docSection: { marginBottom: 14 },
   docLabel: { fontSize: 12, fontWeight: '500' as const, marginBottom: 6 },
   docImg: { width: '100%', height: 180, borderRadius: 4 },
+  zoomHint: { position: 'absolute', bottom: 6, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  zoomTxt: { color: '#fff', fontSize: 11, fontWeight: '500' as const },
   field: { marginBottom: 14 },
   fieldLabel: { fontSize: 12, fontWeight: '500' as const, marginBottom: 6 },
   notesInput: { borderWidth: 1, borderRadius: 4, padding: 12, fontSize: 14, minHeight: 80 },
