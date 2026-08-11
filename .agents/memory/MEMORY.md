@@ -1,0 +1,1 @@
+- [pnpm Metro temp-dir crash](pnpm-metro-temp-crash.md) — Metro crashes with ENOENT after pnpm installs; fix: delete *_tmp_* dirs + blockList in metro.config.js (already applied).
