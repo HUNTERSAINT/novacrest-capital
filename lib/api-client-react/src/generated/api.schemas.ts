@@ -373,6 +373,12 @@ export interface AdminUserUpdate {
   balance?: number;
 }
 
+export interface DeductInput {
+  userId: number;
+  amount: number;
+  reason: string;
+}
+
 export type CreditInputType = typeof CreditInputType[keyof typeof CreditInputType];
 
 

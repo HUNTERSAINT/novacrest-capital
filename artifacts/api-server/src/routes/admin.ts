@@ -28,6 +28,8 @@ import {
   DeletePlanParams,
   CreditUserBody,
   CreditUserResponse,
+  DeductUserBody,
+  DeductUserResponse,
 } from "@workspace/api-zod";
 
 const router = Router();
@@ -461,6 +463,41 @@ router.post("/admin/credit-user", requireAdmin, async (req, res): Promise<void> 
   });
 
   res.json(CreditUserResponse.parse({ message: `Successfully credited $${amount} to user` }));
+});
+
+// ── Deduct User ──────────────────────────────────────────────────────────────
+
+router.post("/admin/deduct-user", requireAdmin, async (req, res): Promise<void> => {
+  const parsed = DeductUserBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { userId, amount, reason } = parsed.data;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  if (amount > user.balance) {
+    res.status(400).json({ error: `Deduction amount ($${amount}) exceeds user balance ($${user.balance})` });
+    return;
+  }
+
+  await db.update(usersTable)
+    .set({ balance: user.balance - amount })
+    .where(eq(usersTable.id, userId));
+
+  await db.insert(transactionsTable).values({
+    userId,
+    type: "withdrawal",
+    amount,
+    status: "completed",
+    cryptoType: "USD",
+    notes: reason,
+  });
+
+  res.json(DeductUserResponse.parse({ message: `Successfully deducted $${amount} from user` }));
 });
 
 // ── KYC Management ───────────────────────────────────────────────────────────

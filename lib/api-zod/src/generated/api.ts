@@ -700,4 +700,17 @@ export const CreditUserResponse = zod.object({
   "message": zod.string()
 })
 
+/**
+ * @summary Manually deduct from a user's balance (admin)
+ */
+export const DeductUserBody = zod.object({
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "reason": zod.string()
+})
+
+export const DeductUserResponse = zod.object({
+  "message": zod.string()
+})
+
 

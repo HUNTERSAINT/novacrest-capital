@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
-import { useGetAdminUser, useUpdateAdminUser, useCreditUser } from "@workspace/api-client-react";
+import { useGetAdminUser, useUpdateAdminUser, useCreditUser, useDeductUser } from "@workspace/api-client-react";
 import { useMutation } from "@tanstack/react-query";
 import { customFetch } from "@workspace/api-client-react/custom-fetch";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { ArrowLeft, DollarSign, UserCog, History, TrendingUp, LogIn } from "lucide-react";
+import { ArrowLeft, DollarSign, MinusCircle, UserCog, History, TrendingUp, LogIn } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
 
@@ -30,6 +30,8 @@ export default function AdminUserDetail() {
   const [creditAmount, setCreditAmount] = useState("");
   const [creditType, setCreditType] = useState<"bonus" | "profit" | "deposit">("bonus");
   const [creditNote, setCreditNote] = useState("");
+  const [deductAmount, setDeductAmount] = useState("");
+  const [deductReason, setDeductReason] = useState("");
 
   const impersonateMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -79,6 +81,18 @@ export default function AdminUserDetail() {
     },
   });
 
+  const deductMutation = useDeductUser({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries();
+        setDeductAmount("");
+        setDeductReason("");
+        toast({ title: "Balance deducted", description: "Amount removed from account." });
+      },
+      onError: (err) => toast({ variant: "destructive", title: "Error", description: err.message }),
+    },
+  });
+
   if (isLoading || !detail) {
     return (
       <div className="space-y-4">
@@ -106,6 +120,15 @@ export default function AdminUserDetail() {
       return;
     }
     creditMutation.mutate({ data: { userId, amount, type: creditType, notes: creditNote || "Admin credit" } });
+  };
+
+  const handleDeduct = () => {
+    const amount = parseFloat(deductAmount);
+    if (!amount || amount <= 0) {
+      toast({ variant: "destructive", title: "Invalid amount" });
+      return;
+    }
+    deductMutation.mutate({ data: { userId, amount, reason: deductReason || "Admin deduction" } });
   };
 
   return (
@@ -229,6 +252,45 @@ export default function AdminUserDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Deduct user */}
+      <Card className="bg-card border-white/5 rounded-sm border-red-500/10">
+        <CardHeader>
+          <CardTitle className="font-serif text-lg text-white flex items-center gap-2">
+            <MinusCircle className="w-5 h-5 text-red-400" /> Deduct Balance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={deductAmount}
+                onChange={e => setDeductAmount(e.target.value)}
+                className="pl-7 bg-background/50 border-white/10 text-white rounded-sm h-11"
+              />
+            </div>
+            <Input
+              placeholder="Reason (e.g. Fee reversal, correction)"
+              value={deductReason}
+              onChange={e => setDeductReason(e.target.value)}
+              className="bg-background/50 border-white/10 text-white rounded-sm h-11"
+            />
+            <Button
+              onClick={handleDeduct}
+              className="w-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-sm h-11"
+              disabled={deductMutation.isPending}
+            >
+              {deductMutation.isPending ? "Processing..." : "Deduct Balance"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Current balance: <span className="text-white font-medium">{detail ? fmt(detail.user.balance) : "—"}</span>. Deduction cannot exceed balance.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Active investments */}
       {investments.length > 0 && (
