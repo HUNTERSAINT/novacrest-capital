@@ -1,8 +1,8 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-  "builder": "RAILPACK",
-  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/kingsaint run build && pnpm --filter @workspace/api-server run build"
+    "builder": "RAILPACK",
+    "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/kingsaint run build && pnpm --filter @workspace/api-server run build"
   },
   "deploy": {
     "releaseCommand": "pnpm --filter @workspace/api-server run restore",
