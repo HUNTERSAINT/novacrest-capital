@@ -2,19 +2,21 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Menu, X, Smartphone, Apple, Download } from "lucide-react";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [appModalOpen, setAppModalOpen] = useState(false);
 
   const isDarkBg = location === "/";
 
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/plans", label: "Plans" },
-    { href: "/novacrest-mobile/", label: "Get the App" },
+    { href: null, label: "Get the App", modal: true },
   ];
 
   return (
@@ -31,8 +33,12 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(n => (
-              <Link key={n.href} href={n.href} className="text-sm font-medium hover:text-primary transition-colors">
+            {navLinks.map(n => n.modal ? (
+              <button key={n.label} onClick={() => setAppModalOpen(true)} className="text-sm font-medium hover:text-primary transition-colors">
+                {n.label}
+              </button>
+            ) : (
+              <Link key={n.href!} href={n.href!} className="text-sm font-medium hover:text-primary transition-colors">
                 {n.label}
               </Link>
             ))}
@@ -73,10 +79,18 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile dropdown */}
         {mobileOpen && (
           <div className="md:hidden bg-card/95 backdrop-blur-md border-b border-white/10 px-4 pb-4 space-y-1">
-            {navLinks.map(n => (
+            {navLinks.map(n => n.modal ? (
+              <button
+                key={n.label}
+                onClick={() => { setMobileOpen(false); setAppModalOpen(true); }}
+                className="block w-full text-left py-3 text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 px-3 rounded-sm transition-colors"
+              >
+                {n.label}
+              </button>
+            ) : (
               <Link
-                key={n.href}
-                href={n.href}
+                key={n.href!}
+                href={n.href!}
                 onClick={() => setMobileOpen(false)}
                 className="block py-3 text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 px-3 rounded-sm transition-colors"
               >
@@ -95,6 +109,54 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </header>
+
+      {/* ── Get the App modal ── */}
+      <Dialog open={appModalOpen} onOpenChange={setAppModalOpen}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl text-white flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-primary" /> Novacrest Capital App
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Manage your portfolio, track investments, and stay on top of your account — all from your phone.
+          </p>
+          <div className="space-y-3 mt-2">
+            {/* Android APK */}
+            <a
+              href="/novacrest-capital.apk"
+              download
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            >
+              <svg className="w-5 h-5 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.523 15.341 14.58 9.65a.5.5 0 0 0-.44-.262h-4.28a.5.5 0 0 0-.44.262l-2.943 5.69a.5.5 0 0 0 .44.738h10.167a.5.5 0 0 0 .44-.738ZM12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-1-5h2v2h-2v-2Zm0-8h2v6h-2V7Z"/>
+              </svg>
+              <div>
+                <p className="text-xs text-muted-foreground leading-none mb-0.5">Direct install for</p>
+                <p className="text-sm font-medium text-white">Android (APK)</p>
+              </div>
+              <Apple className="w-4 h-4 text-muted-foreground ml-auto" style={{ display: 'none' }} />
+            </a>
+
+            {/* iOS via Expo Go */}
+            <a
+              href="https://expo.dev/go"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            >
+              <Apple className="w-5 h-5 text-primary shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground leading-none mb-0.5">Open with Expo Go on</p>
+                <p className="text-sm font-medium text-white">iPhone / iPad</p>
+              </div>
+            </a>
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-1">
+            Android: enable "Install unknown apps" in Settings before installing the APK.
+          </p>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">

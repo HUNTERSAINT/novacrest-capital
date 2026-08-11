@@ -18,8 +18,7 @@
       "bundleIdentifier": "com.novacrest.mobile"
     },
     "android": {
-      "package": "com.novacrest.mobile",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.novacrest.mobile"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
