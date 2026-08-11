@@ -15,7 +15,6 @@ import { execSync } from "child_process";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
-import crypto from "crypto";
 import pg from "pg";
 
 const { Client } = pg;
@@ -56,17 +55,6 @@ async function main() {
 
     if (userCount > 0) {
       console.log(`ℹ️   Database already has ${userCount} user(s). Skipping seed.`);
-
-      // ── Reset admin password on every start (idempotent) ──────────────────
-      const adminPassword = "Admin@KingSaint2026!";
-      const salt = crypto.randomBytes(16).toString("hex");
-      const hash = crypto.scryptSync(adminPassword, salt, 64).toString("hex");
-      const passwordHash = `${salt}:${hash}`;
-      await client.query(
-        "UPDATE public.users SET password_hash = $1 WHERE email = 'admin@novacrest.com'",
-        [passwordHash]
-      );
-      console.log("🔑  Admin password reset.");
       return;
     }
 

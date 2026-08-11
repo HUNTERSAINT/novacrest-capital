@@ -6,7 +6,7 @@
   },
   "deploy": {
     "releaseCommand": "pnpm --filter @workspace/api-server run restore",
-    "startCommand": "node artifacts/api-server/restore.mjs && NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs",
+    "startCommand": "NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs",
     "healthcheckPath": "/api/healthz",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
