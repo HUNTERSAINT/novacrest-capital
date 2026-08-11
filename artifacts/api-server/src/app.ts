@@ -33,13 +33,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-// Serve static files from the api-server public directory (e.g. APK downloads).
-// This runs in all environments so the APK route works both locally and in production.
+// Resolve the api-server's own public/ directory regardless of CWD.
 const __dirnameStatic = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirnameStatic, "../public");
-app.use(express.static(publicDir, { dotfiles: "ignore" }));
 
-// Explicit route for the Android APK with correct MIME type and Content-Disposition.
+// Explicit APK route MUST come before express.static so we control headers.
+// express.static would serve the file without the required Content-Disposition.
 app.get("/novacrest-capital.apk", (req: Request, res: Response) => {
   const apkPath = path.join(publicDir, "novacrest-capital.apk");
   res.setHeader("Content-Type", "application/vnd.android.package-archive");
@@ -55,6 +54,9 @@ app.get("/novacrest-capital.apk", (req: Request, res: Response) => {
     }
   });
 });
+
+// Serve other static files from public/ (future assets).
+app.use(express.static(publicDir, { dotfiles: "ignore" }));
 
 // In production, serve the built React frontend as static files and handle SPA routing.
 if (process.env.NODE_ENV === "production") {
