@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -6,8 +6,12 @@ import { Tabs } from 'expo-router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { useColors } from '@/hooks/useColors';
+import { useAuth } from '@/contexts/AuthContext';
 
 function NativeTabLayout() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -26,14 +30,20 @@ function NativeTabLayout() {
         <Icon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
         <Label>Profile</Label>
       </NativeTabs.Trigger>
+      {isAdmin && (
+        <NativeTabs.Trigger name="admin">
+          <Icon sf={{ default: 'shield', selected: 'shield.fill' }} />
+          <Label>Admin</Label>
+        </NativeTabs.Trigger>
+      )}
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
   const colors = useColors();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark' || true; // Always dark for Novacrest
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
 
@@ -101,6 +111,15 @@ function ClassicTabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => tabIcon('person.circle.fill', 'user', color),
+        }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Admin',
+          tabBarIcon: ({ color }) => tabIcon('shield', 'shield', color),
+          // Hide from tab bar for non-admins; route still accessible if needed
+          href: isAdmin ? undefined : null,
         }}
       />
     </Tabs>
