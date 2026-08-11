@@ -14,6 +14,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/plans", label: "Plans" },
+    { href: "/novacrest-mobile/", label: "Get the App" },
   ];
 
   return (

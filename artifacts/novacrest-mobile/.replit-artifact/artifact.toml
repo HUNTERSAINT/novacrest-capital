@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/novacrest-mobile/"
+title = "Novacrest Capital Mobile"
+description = "A mobile companion app for Novacrest Capital investors. Lets users log in, check their portfolio balance and profits, browse and activate investment plans, view transaction history, and manage their profile — all from their phone."
+version = "1.0.0"
+id = "artifacts/novacrest-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/novacrest-mobile/" ]
+localPort = 19902
+
+[services.development]
+run = "pnpm --filter @workspace/novacrest-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/novacrest-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/novacrest-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "19902"
+BASE_PATH = "/novacrest-mobile/"
