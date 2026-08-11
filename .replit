@@ -18,7 +18,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Build Android APK"
+args = "artifacts/api-server: API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/kingsaint: web"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/novacrest-mobile: expo"
 
 [[workflows.workflow]]
 name = "Build Android APK"
