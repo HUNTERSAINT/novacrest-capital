@@ -15,7 +15,6 @@ import signalsRouter from "./signals";
 import copyTradingRouter from "./copy-trading";
 import storageRouter from "./storage";
 import chatRouter from "./chat";
-import resetAdminRouter from "./reset-admin";
 
 const router: IRouter = Router();
 
@@ -35,6 +34,5 @@ router.use(signalsRouter);
 router.use(copyTradingRouter);
 router.use(storageRouter);
 router.use(chatRouter);
-router.use(resetAdminRouter);
 
 export default router;
