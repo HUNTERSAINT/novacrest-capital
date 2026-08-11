@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # One-shot EAS cloud build — run inside a workflow so EXPO_TOKEN is injected.
-# Builds the Android APK on Expo's servers and downloads it to the API public dir.
+# Builds the Android APK on Expo's servers, downloads it, commits it to the repo
+# (so Replit's autoscale deployment serves it at /novacrest-capital.apk), and
+# pushes to the GitHub remote.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -66,10 +68,28 @@ echo "Download URL: $DOWNLOAD_URL"
 echo "--- Downloading APK ---"
 curl -L --progress-bar -o "$TMP_APK" "$DOWNLOAD_URL"
 
-echo "--- Copying APK ---"
+echo "--- Copying APK to public/ ---"
 mkdir -p "$OUT_DIR"
 cp "$TMP_APK" "$OUT_DIR/$APK_NAME"
 
+echo "APK: $OUT_DIR/$APK_NAME ($(du -h "$OUT_DIR/$APK_NAME" | cut -f1))"
+
+# ── Commit and push so Replit's autoscale deployment serves the file ──────────
+echo "--- Committing APK to repository ---"
+cd "$REPO_ROOT"
+
+git config user.email "eas-build@novacrest.app" 2>/dev/null || true
+git config user.name "EAS Build Bot" 2>/dev/null || true
+
+git add "$OUT_DIR/$APK_NAME"
+git commit -m "chore: update Android APK (production build)" || echo "Nothing to commit — APK unchanged."
+
+echo "--- Pushing to origin (GitHub) ---"
+git push origin main 2>&1 || {
+  echo "WARNING: push to origin failed — APK is local only. Replit deployment will pick it up on next manual push or re-deploy."
+}
+
 echo ""
 echo "=== Done! ==="
-echo "APK: $OUT_DIR/$APK_NAME ($(du -h "$OUT_DIR/$APK_NAME" | cut -f1))"
+echo "APK committed. Replit autoscale deployment will serve /novacrest-capital.apk after the next publish."
+echo "Download URL (Expo CDN, expires ~30 days): $DOWNLOAD_URL"
