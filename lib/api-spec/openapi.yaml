@@ -3,20 +3,36 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: KingSaint Capital - Premium Crypto Investment Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: plans
+    description: Investment plans
+  - name: investments
+    description: User investments
+  - name: transactions
+    description: Transaction history
+  - name: referrals
+    description: Referral system
+  - name: admin
+    description: Admin operations
+  - name: market
+    description: Market data
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +40,1022 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/profile:
+    patch:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/change-password:
+    post:
+      operationId: changePassword
+      tags: [users]
+      summary: Change password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/dashboard:
+    get:
+      operationId: getDashboard
+      tags: [users]
+      summary: Get user dashboard summary
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /plans:
+    get:
+      operationId: getPlans
+      tags: [plans]
+      summary: List all investment plans
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+
+  /plans/{id}:
+    get:
+      operationId: getPlan
+      tags: [plans]
+      summary: Get a specific plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Plan details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /investments:
+    get:
+      operationId: getInvestments
+      tags: [investments]
+      summary: Get user investments
+      responses:
+        "200":
+          description: User investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Investment"
+    post:
+      operationId: createInvestment
+      tags: [investments]
+      summary: Create new investment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvestmentInput"
+      responses:
+        "201":
+          description: Investment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /investments/{id}:
+    get:
+      operationId: getInvestment
+      tags: [investments]
+      summary: Get investment details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Investment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [transactions]
+      summary: Get transaction history
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [deposit, withdrawal, profit, bonus]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, failed, cancelled]
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Request deposit or withdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /referrals:
+    get:
+      operationId: getReferrals
+      tags: [referrals]
+      summary: Get referral stats and list
+      responses:
+        "200":
+          description: Referral data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralSummary"
+
+  /market/prices:
+    get:
+      operationId: getMarketPrices
+      tags: [market]
+      summary: Get live crypto price tickers
+      responses:
+        "200":
+          description: Market prices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CryptoPrice"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform-wide statistics
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: List all users (admin)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, suspended, pending]
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: number
+            default: 0
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserList"
+
+  /admin/users/{id}:
+    get:
+      operationId: getAdminUser
+      tags: [admin]
+      summary: Get user details (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserUpdate"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/transactions:
+    get:
+      operationId: getAdminTransactions
+      tags: [admin]
+      summary: List all transactions (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, failed, cancelled]
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: number
+            default: 0
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /admin/transactions/{id}/approve:
+    post:
+      operationId: approveTransaction
+      tags: [admin]
+      summary: Approve a transaction (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Transaction approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /admin/transactions/{id}/reject:
+    post:
+      operationId: rejectTransaction
+      tags: [admin]
+      summary: Reject a transaction (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Transaction rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /admin/plans:
+    post:
+      operationId: createPlan
+      tags: [admin]
+      summary: Create investment plan (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanInput"
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+
+  /admin/plans/{id}:
+    patch:
+      operationId: updatePlan
+      tags: [admin]
+      summary: Update investment plan (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanUpdate"
+      responses:
+        "200":
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+    delete:
+      operationId: deletePlan
+      tags: [admin]
+      summary: Delete investment plan (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Plan deleted
+
+  /admin/credit-user:
+    post:
+      operationId: creditUser
+      tags: [admin]
+      summary: Manually credit a user's balance (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditInput"
+      responses:
+        "200":
+          description: User credited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    SuccessResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, fullName, role, status, balance, totalInvested, totalProfit, referralCode, createdAt]
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [user, admin]
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        balance:
+          type: number
+        totalInvested:
+          type: number
+        totalProfit:
+          type: number
+        referralCode:
+          type: string
+        referredBy:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    RegisterInput:
+      type: object
+      required: [email, password, fullName]
+      properties:
+        email:
+          type: string
+          
+        password:
+          type: string
+          minLength: 8
+        fullName:
+          type: string
+          minLength: 2
+        referralCode:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          
+        password:
+          type: string
+
+    ProfileUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+        avatarUrl:
+          type: string
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+
+    DashboardSummary:
+      type: object
+      required: [balance, totalInvested, totalProfit, activeInvestments, pendingWithdrawals, recentTransactions, investmentGrowth]
+      properties:
+        balance:
+          type: number
+        totalInvested:
+          type: number
+        totalProfit:
+          type: number
+        activeInvestments:
+          type: number
+        pendingWithdrawals:
+          type: number
+        recentTransactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        investmentGrowth:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrowthPoint"
+
+    GrowthPoint:
+      type: object
+      required: [date, value]
+      properties:
+        date:
+          type: string
+        value:
+          type: number
+
+    Plan:
+      type: object
+      required: [id, name, description, minAmount, maxAmount, roiPercent, durationDays, tier, isActive, features, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: ["number", "null"]
+        roiPercent:
+          type: number
+        durationDays:
+          type: number
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum, diamond]
+        isActive:
+          type: boolean
+        features:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+
+    PlanInput:
+      type: object
+      required: [name, description, minAmount, roiPercent, durationDays, tier, features]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: number
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum, diamond]
+        features:
+          type: array
+          items:
+            type: string
+
+    PlanUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: number
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum, diamond]
+        isActive:
+          type: boolean
+        features:
+          type: array
+          items:
+            type: string
+
+    Investment:
+      type: object
+      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, startDate, endDate, profitEarned, createdAt]
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        planId:
+          type: number
+        planName:
+          type: string
+        planTier:
+          type: string
+        amount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: number
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        profitEarned:
+          type: number
+        createdAt:
+          type: string
+
+    InvestmentInput:
+      type: object
+      required: [planId, amount, cryptoType, walletAddress]
+      properties:
+        planId:
+          type: number
+        amount:
+          type: number
+        cryptoType:
+          type: string
+          enum: [BTC, ETH, USDT, BNB, SOL]
+        walletAddress:
+          type: string
+
+    Transaction:
+      type: object
+      required: [id, userId, type, amount, status, cryptoType, createdAt]
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        userEmail:
+          type: ["string", "null"]
+        userFullName:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [deposit, withdrawal, profit, bonus, referral]
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+        cryptoType:
+          type: string
+        walletAddress:
+          type: ["string", "null"]
+        txHash:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TransactionInput:
+      type: object
+      required: [type, amount, cryptoType]
+      properties:
+        type:
+          type: string
+          enum: [deposit, withdrawal]
+        amount:
+          type: number
+        cryptoType:
+          type: string
+          enum: [BTC, ETH, USDT, BNB, SOL]
+        walletAddress:
+          type: string
+        txHash:
+          type: string
+
+    RejectInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    ReferralSummary:
+      type: object
+      required: [referralCode, referralLink, totalReferrals, totalEarned, referrals]
+      properties:
+        referralCode:
+          type: string
+        referralLink:
+          type: string
+        totalReferrals:
+          type: number
+        totalEarned:
+          type: number
+        referrals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Referral"
+
+    Referral:
+      type: object
+      required: [id, referredUserName, joinedAt, status, bonusEarned]
+      properties:
+        id:
+          type: number
+        referredUserName:
+          type: string
+        joinedAt:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        bonusEarned:
+          type: number
+
+    CryptoPrice:
+      type: object
+      required: [symbol, name, price, change24h, changePercent24h, marketCap, volume24h]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        change24h:
+          type: number
+        changePercent24h:
+          type: number
+        marketCap:
+          type: number
+        volume24h:
+          type: number
+        iconUrl:
+          type: ["string", "null"]
+
+    AdminStats:
+      type: object
+      required: [totalUsers, activeUsers, totalInvested, totalPaidOut, pendingWithdrawals, totalTransactions, platformRevenue, newUsersToday, activeInvestments]
+      properties:
+        totalUsers:
+          type: number
+        activeUsers:
+          type: number
+        totalInvested:
+          type: number
+        totalPaidOut:
+          type: number
+        pendingWithdrawals:
+          type: number
+        totalTransactions:
+          type: number
+        platformRevenue:
+          type: number
+        newUsersToday:
+          type: number
+        activeInvestments:
+          type: number
+
+    AdminUserList:
+      type: object
+      required: [users, total]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: number
+
+    AdminUserDetail:
+      type: object
+      required: [user, investments, transactions]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        investments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Investment"
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+
+    AdminUserUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        role:
+          type: string
+          enum: [user, admin]
+        balance:
+          type: number
+
+    CreditInput:
+      type: object
+      required: [userId, amount, type, notes]
+      properties:
+        userId:
+          type: number
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [bonus, profit, deposit]
+        notes:
+          type: string

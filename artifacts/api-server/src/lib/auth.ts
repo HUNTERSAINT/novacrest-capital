@@ -1,0 +1,21 @@
+import crypto from "crypto";
+
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+export function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(":");
+  const inputHash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return hash === inputHash;
+}
+
+export function generateToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export function generateReferralCode(): string {
+  return crypto.randomBytes(4).toString("hex").toUpperCase();
+}
