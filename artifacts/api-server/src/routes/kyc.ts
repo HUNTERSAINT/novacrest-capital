@@ -3,7 +3,7 @@ import { db, kycDocumentsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth.js";
 import { z } from "zod";
-import { createNotification, notifyAdmins } from "../lib/notifications.js";
+import { createNotification, notifyAdmins, sendAdminPushNotifications } from "../lib/notifications.js";
 
 const router = Router();
 
@@ -66,11 +66,19 @@ router.post("/kyc", requireAuth, async (req, res): Promise<void> => {
   const [submitter] = await db.select({ fullName: usersTable.fullName, email: usersTable.email })
     .from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
 
+  const adminKycMessage = `${submitter?.fullName ?? "A member"} (${submitter?.email ?? ""}) submitted identity documents for review.`;
+
   await notifyAdmins({
     type: "admin_kyc_submitted",
     title: "New KYC Submission",
-    message: `${submitter?.fullName ?? "A member"} (${submitter?.email ?? ""}) submitted identity documents for review.`,
+    message: adminKycMessage,
   });
+
+  sendAdminPushNotifications({
+    title: "New KYC Submission",
+    body: adminKycMessage,
+    data: { section: "kyc" },
+  }).catch(() => {});
 
   res.status(201).json({ kyc: formatKyc(doc) });
 });

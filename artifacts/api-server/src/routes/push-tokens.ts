@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, pushTokensTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth.js";
 import { z } from "zod";
 
@@ -19,7 +19,6 @@ router.post("/push-tokens", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  // Upsert: if token already exists (e.g. re-login), just re-assign to this user
   await db
     .insert(pushTokensTable)
     .values({
@@ -29,7 +28,7 @@ router.post("/push-tokens", requireAuth, async (req, res): Promise<void> => {
     })
     .onConflictDoUpdate({
       target: pushTokensTable.token,
-      set: { userId: req.userId! },
+      set: { userId: req.userId!, updatedAt: new Date() },
     });
 
   res.status(201).json({ ok: true });

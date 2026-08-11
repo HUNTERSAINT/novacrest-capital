@@ -3,7 +3,7 @@ import { db, chatSessionsTable, chatMessagesTable, usersTable } from "@workspace
 import { eq, desc, and, asc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth.js";
 import { z } from "zod";
-import { notifyAdmins } from "../lib/notifications.js";
+import { notifyAdmins, sendAdminPushNotifications } from "../lib/notifications.js";
 
 const router = Router();
 
@@ -70,10 +70,16 @@ router.post("/chat/messages", requireAuth, async (req, res): Promise<void> => {
 
   // Notify all admins of the new message (fire-and-forget)
   const [sender] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
+  const chatBody = `${sender?.fullName ?? "A member"} sent a message: "${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`;
   notifyAdmins({
     type: "admin_chat_message",
     title: "New Chat Message",
-    message: `${sender?.fullName ?? "A member"} sent a message: "${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
+    message: chatBody,
+  }).catch(() => {});
+  sendAdminPushNotifications({
+    title: "New Chat Message",
+    body: chatBody,
+    data: { section: "chat" },
   }).catch(() => {});
 
   res.status(201).json({ message: msg });

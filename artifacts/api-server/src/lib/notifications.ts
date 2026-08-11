@@ -104,3 +104,54 @@ export async function notifyAdmins({
     // Non-critical
   }
 }
+
+/**
+ * Send an Expo push notification to all registered admin devices.
+ * Non-fatal — never throws.
+ */
+export async function sendAdminPushNotifications({
+  title,
+  body,
+  data,
+}: {
+  title: string;
+  body: string;
+  data?: Record<string, string>;
+}) {
+  try {
+    const admins = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.role, "admin"));
+
+    if (admins.length === 0) return;
+
+    const adminIds = admins.map((a) => a.id);
+    const tokenRows = await db
+      .select({ token: pushTokensTable.token })
+      .from(pushTokensTable)
+      .where(inArray(pushTokensTable.userId, adminIds));
+
+    if (tokenRows.length === 0) return;
+
+    const messages = tokenRows.map((r) => ({
+      to: r.token,
+      title,
+      body,
+      data: data ?? {},
+      sound: "default",
+      priority: "high",
+    }));
+
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(messages),
+    });
+  } catch {
+    // Non-critical
+  }
+}

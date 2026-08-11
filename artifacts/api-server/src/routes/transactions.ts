@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, transactionsTable, usersTable } from "@workspace/db";
-import { notifyAdmins } from "../lib/notifications.js";
+import { notifyAdmins, sendAdminPushNotifications } from "../lib/notifications.js";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth.js";
 import {
@@ -75,10 +75,17 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
   // Notify admins of deposit or withdrawal request
   const [submitter] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
   const isDeposit = parsed.data.type === "deposit";
+  const txTitle = isDeposit ? "New Deposit Request" : "New Withdrawal Request";
+  const txMessage = `${submitter?.fullName ?? "A member"} submitted a ${parsed.data.type} of $${parseFloat(parsed.data.amount).toLocaleString()} (${parsed.data.cryptoType}).`;
   notifyAdmins({
     type: isDeposit ? "admin_deposit_request" : "admin_withdrawal_request",
-    title: isDeposit ? "New Deposit Request" : "New Withdrawal Request",
-    message: `${submitter?.fullName ?? "A member"} submitted a ${parsed.data.type} of $${parseFloat(parsed.data.amount).toLocaleString()} (${parsed.data.cryptoType}).`,
+    title: txTitle,
+    message: txMessage,
+  }).catch(() => {});
+  sendAdminPushNotifications({
+    title: txTitle,
+    body: txMessage,
+    data: { section: "transactions" },
   }).catch(() => {});
 
   res.status(201).json(CreateTransactionResponse.parse(formatTransaction(tx)));

@@ -47,6 +47,7 @@ export default function AdminScreen() {
       setSection(sectionParam as SectionId);
     }
   }, [sectionParam]);
+
   const { data: stats, isLoading: loadingStats } = useGetAdminStats();
 
   const s = makeStyles(colors, insets);

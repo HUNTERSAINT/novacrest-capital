@@ -7,8 +7,10 @@ export const pushTokensTable = pgTable("push_tokens", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
-  platform: text("platform"), // 'ios' | 'android'
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  platform: text("platform"), // 'ios' | 'android' | 'web'
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export type PushToken = typeof pushTokensTable.$inferSelect;
+export type InsertPushToken = typeof pushTokensTable.$inferInsert;

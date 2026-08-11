@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(stored);
           const me = await getMe();
           setUser(me);
-          // Re-register push token on app restart (non-blocking)
+          // Re-register push token for admin users on app resume
           setupPushNotifications(stored, me.role).catch(() => {});
         }
       } catch {
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(result.token);
     setUser(result.user);
     await AsyncStorage.setItem(TOKEN_KEY, result.token);
-    // Register push token for admins (non-blocking)
+    // Register push notifications for admin users after login
     setupPushNotifications(result.token, result.user.role).catch(() => {});
   };
 
@@ -142,13 +142,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(result.token);
     setUser(result.user);
     await AsyncStorage.setItem(TOKEN_KEY, result.token);
-    // New accounts start as 'user', so no push registration needed
   };
 
   const logout = async () => {
-    // Unregister push token before clearing credentials
-    if (token && pushTokenRef.current) {
-      await deletePushToken(pushTokenRef.current, token);
+    // Remove push token from backend before clearing session
+    if (pushTokenRef.current && _currentToken) {
+      await deletePushToken(pushTokenRef.current, _currentToken);
       pushTokenRef.current = null;
     }
     _currentToken = null;

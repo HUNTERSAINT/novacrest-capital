@@ -250,3 +250,23 @@ export function useDeleteAdminStrategy() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "copy-trading"] }),
   });
 }
+
+// ─── Push Tokens ─────────────────────────────────────────────────────────────
+
+/** Register an Expo push token with the backend. Non-fatal. */
+export async function registerPushToken(token: string): Promise<void> {
+  await customFetch(`${BASE}/api/push-tokens`, {
+    method: "POST",
+    body: JSON.stringify({ token }),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** Remove an Expo push token from the backend (e.g. on logout). Non-fatal. */
+export async function removePushToken(token: string): Promise<void> {
+  await customFetch(`${BASE}/api/push-tokens`, {
+    method: "DELETE",
+    body: JSON.stringify({ token }),
+    headers: { "Content-Type": "application/json" },
+  });
+}

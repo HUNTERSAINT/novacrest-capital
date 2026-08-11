@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -17,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Stack, useRouter } from 'expo-router';
 
 // Set API base URL at module level — outside any component
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
@@ -34,6 +34,8 @@ if (Platform.OS !== 'web') {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+import React, { useEffect, useRef } from 'react';
+import { useNotificationSetup } from '@/hooks/usePushNotifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +47,29 @@ const queryClient = new QueryClient({
 });
 
 function RootLayoutNav() {
+  const router = useRouter();
+  const responseListenerRef = useRef<Notifications.EventSubscription | null>(null);
+
+  // Listen for notification taps and deep-link to the relevant admin section
+  useEffect(() => {
+    responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const section =
+          (response.notification.request.content.data as Record<string, string>)?.section ?? 'members';
+        router.navigate({
+          pathname: '/(tabs)/admin',
+          params: { section },
+        });
+      },
+    );
+    return () => {
+      responseListenerRef.current?.remove();
+    };
+  }, [router]);
+
+  // Set up foreground notification handler
+  useNotificationSetup();
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
