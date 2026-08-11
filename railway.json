@@ -5,6 +5,7 @@
     "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @workspace/kingsaint run build && pnpm --filter @workspace/api-server run build"
   },
   "deploy": {
+    "releaseCommand": "pnpm --filter @workspace/api-server run restore",
     "startCommand": "NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs",
     "healthcheckPath": "/api/healthz",
     "healthcheckTimeout": 30,
