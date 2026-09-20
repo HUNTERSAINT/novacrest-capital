@@ -16,7 +16,7 @@ function useAdminApi() {
   const { token } = useAuth();
   const base = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
-  return async <T>(path: string, options?: RequestInit): Promise<T> => {
+  return async <T,>(path: string, options?: RequestInit): Promise<T> => {
     const res = await fetch(`${base}${path}`, {
       ...options,
       headers: {

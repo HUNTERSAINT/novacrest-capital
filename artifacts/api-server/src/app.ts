@@ -98,4 +98,16 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// Keep API failures machine-readable so the client can show a useful message
+// instead of receiving Express's default HTML error page.
+app.use((err: unknown, req: Request, res: Response, next: (error?: unknown) => void) => {
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+
+  req.log.error({ err }, "Unhandled request error");
+  res.status(500).json({ error: "Internal server error" });
+});
+
 export default app;

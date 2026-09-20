@@ -13,7 +13,7 @@ Every Railway deploy runs this sequence automatically:
 ```
 1. Build  →  pnpm install + build frontend + build API
 2. Release →  push schema, detect empty DB, load data, fix sequences
-3. Start   →  serve the app (API + frontend on one URL)
+3. Start   →  restore the schema again if needed, then serve the app (API + frontend on one URL)
 ```
 
 The release step (`artifacts/api-server/restore.mjs`) is smart:
@@ -91,9 +91,13 @@ On every subsequent deploy:
 ℹ️   Database already has 15 user(s). Skipping seed.
 ```
 
+The release command performs the restore before the deployment is promoted. The
+start command repeats the same idempotent restore as a safety net for Railway
+deployments where the release hook was skipped or the database was recreated.
+
 **Start**:
 ```
-NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs
+NODE_ENV=production pnpm --filter @workspace/api-server run restore && NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs
 ```
 
 ---
@@ -163,7 +167,7 @@ Then trigger a redeploy — the release step will reload everything automaticall
 |---|---|
 | Build | `pnpm install --frozen-lockfile && pnpm --filter @workspace/kingsaint run build && pnpm --filter @workspace/api-server run build` |
 | Release | `pnpm --filter @workspace/api-server run restore` |
-| Start | `NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs` |
+| Start | `NODE_ENV=production pnpm --filter @workspace/api-server run restore && NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs` |
 | Health check | `GET /api/healthz` |
 | Seed file | `db/production-seed.sql` |
 | Restore script | `artifacts/api-server/restore.mjs` |
