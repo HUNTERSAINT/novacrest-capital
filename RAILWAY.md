@@ -55,8 +55,14 @@ In your Railway **web service** (not the database), go to **Variables** and add:
 |---|---|
 | `NODE_ENV` | `production` |
 | `SESSION_SECRET` | A random 64-character string — generate with: `openssl rand -hex 32` |
+| `NOVACREST_ADMIN_PASSWORD` | The password to use for `admin@novacrest.com` |
 
 > `DATABASE_URL` is already injected by Railway when you added PostgreSQL. Do not set it manually.
+
+`NOVACREST_ADMIN_PASSWORD` is applied to the existing admin row during every
+Railway release/start restore. This keeps the login password in sync with the
+value configured in Railway even when the database was seeded previously. The
+value must be at least 8 characters and is never written to logs.
 
 ---
 
