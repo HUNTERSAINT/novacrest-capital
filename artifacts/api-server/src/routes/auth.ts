@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { hashPassword, verifyPassword, generateReferralCode } from "../lib/auth.js";
+import {
+  hashPassword,
+  verifyPassword,
+  generateReferralCode,
+  normalizeEmail,
+} from "../lib/auth.js";
 import { createSession, deleteSession, getSession } from "../lib/sessions.js";
 import {
   RegisterBody,
@@ -20,7 +25,9 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { email, password, fullName, referralCode, phone, country } = parsed.data;
+  const email = normalizeEmail(parsed.data.email);
+  const { password, fullName, phone, country } = parsed.data;
+  const referralCode = parsed.data.referralCode?.trim().toUpperCase() || undefined;
 
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing) {
@@ -42,9 +49,9 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   const [user] = await db.insert(usersTable).values({
     email,
     passwordHash,
-    fullName,
-    phone,
-    country,
+    fullName: fullName.trim(),
+    phone: phone?.trim() || undefined,
+    country: country?.trim() || undefined,
     referralCode: myReferralCode,
     referredBy,
   }).returning();
@@ -92,7 +99,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { email, password } = parsed.data;
+  const { password } = parsed.data;
+  const email = normalizeEmail(parsed.data.email);
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user) {
