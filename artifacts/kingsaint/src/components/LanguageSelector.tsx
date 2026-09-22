@@ -139,9 +139,17 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
   }, [language]);
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(item => item.code === language);
+  const handleLanguageChange = (nextLanguage: string) => {
+    if (nextLanguage === DEFAULT_LANGUAGE && language !== DEFAULT_LANGUAGE) {
+      setTranslationCookie(DEFAULT_LANGUAGE);
+      window.location.reload();
+      return;
+    }
+    setLanguage(nextLanguage);
+  };
 
   return (
-    <Select value={language} onValueChange={setLanguage}>
+    <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger
         aria-label="Preferred language"
         className={"h-9 border-white/10 bg-white/5 text-white text-xs rounded-sm focus:ring-primary/40 " + (className || "w-[154px]")}
