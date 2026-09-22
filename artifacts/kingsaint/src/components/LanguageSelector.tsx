@@ -65,7 +65,11 @@ function clearTranslationCookies() {
 function setPageTranslationMode(language: string) {
   const skipTranslation = language === DEFAULT_LANGUAGE;
   document.documentElement.classList.toggle("notranslate", skipTranslation);
-  document.documentElement.toggleAttribute("translate", skipTranslation);
+  if (skipTranslation) {
+    document.documentElement.setAttribute("translate", "no");
+  } else {
+    document.documentElement.removeAttribute("translate");
+  }
   document.body?.classList.toggle("notranslate", skipTranslation);
 }
 
