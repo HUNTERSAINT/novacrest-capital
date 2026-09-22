@@ -140,12 +140,12 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(item => item.code === language);
   const handleLanguageChange = (nextLanguage: string) => {
-    if (nextLanguage === DEFAULT_LANGUAGE && language !== DEFAULT_LANGUAGE) {
-      setTranslationCookie(DEFAULT_LANGUAGE);
-      window.location.reload();
-      return;
-    }
+    window.localStorage.setItem(STORAGE_KEY, nextLanguage);
+    document.documentElement.lang = nextLanguage;
+    document.documentElement.dir = RTL_LANGUAGES.has(nextLanguage) ? "rtl" : "ltr";
+    setTranslationCookie(nextLanguage);
     setLanguage(nextLanguage);
+    window.location.reload();
   };
 
   return (
