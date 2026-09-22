@@ -97,7 +97,7 @@ function ensureGoogleTranslate(language: string) {
   if (!document.getElementById("novacrest-google-translate-styles")) {
     const style = document.createElement("style");
     style.id = "novacrest-google-translate-styles";
-    style.textContent = ".goog-te-banner-frame.skiptranslate{display:none!important}body{top:0!important}.goog-tooltip,.goog-te-balloon-frame{display:none!important}#novacrest-google-translate{position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;overflow:hidden}";
+    style.textContent = ".goog-te-banner-frame,.goog-te-banner-frame.skiptranslate,body > .skiptranslate,.goog-te-gadget,.goog-te-gadget-simple,#goog-gt-tt,.goog-te-balloon-frame,.goog-tooltip,.goog-te-menu-frame,.goog-te-spinner-pos,.goog-te-ftab{display:none!important;visibility:hidden!important}body{top:0!important}#novacrest-google-translate{position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;overflow:hidden}";
     document.head.appendChild(style);
   }
 
