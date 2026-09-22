@@ -38,11 +38,92 @@ export const SUPPORTED_LANGUAGES = [
 const DEFAULT_LANGUAGE = "en";
 const STORAGE_KEY = "novacrest-preferred-language";
 const RTL_LANGUAGES = new Set(["ar", "fa", "he", "ur"]);
+const GOOGLE_LANGUAGE_CODES: Record<string, string> = { zh: "zh-CN", he: "iw" };
+
+type GoogleWindow = Window & {
+  googleTranslateElementInit?: () => void;
+  google?: {
+    translate?: {
+      TranslateElement: new (options: Record<string, unknown>, elementId: string) => unknown;
+    };
+  };
+};
 
 function getInitialLanguage() {
   if (typeof window === "undefined") return DEFAULT_LANGUAGE;
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return SUPPORTED_LANGUAGES.some(language => language.code === stored) ? stored! : DEFAULT_LANGUAGE;
+}
+
+function setTranslationCookie(language: string) {
+  if (language === DEFAULT_LANGUAGE) {
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    return;
+  }
+
+  const googleLanguage = GOOGLE_LANGUAGE_CODES[language] || language;
+  document.cookie = "googtrans=/en/" + googleLanguage + "; path=/";
+}
+
+function requestGoogleTranslation(language: string) {
+  if (language === DEFAULT_LANGUAGE) return;
+
+  const googleLanguage = GOOGLE_LANGUAGE_CODES[language] || language;
+  let attempts = 0;
+  const applyLanguage = () => {
+    const combo = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+    if (combo) {
+      combo.value = googleLanguage;
+      combo.dispatchEvent(new Event("change"));
+      return;
+    }
+
+    attempts += 1;
+    if (attempts < 20) window.setTimeout(applyLanguage, 500);
+  };
+  applyLanguage();
+}
+
+function ensureGoogleTranslate(language: string) {
+  const googleWindow = window as GoogleWindow;
+  let container = document.getElementById("novacrest-google-translate");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "novacrest-google-translate";
+    container.setAttribute("aria-hidden", "true");
+    document.body.appendChild(container);
+  }
+
+  if (!document.getElementById("novacrest-google-translate-styles")) {
+    const style = document.createElement("style");
+    style.id = "novacrest-google-translate-styles";
+    style.textContent = ".goog-te-banner-frame.skiptranslate{display:none!important}body{top:0!important}.goog-tooltip,.goog-te-balloon-frame{display:none!important}#novacrest-google-translate{position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;overflow:hidden}";
+    document.head.appendChild(style);
+  }
+
+  const initialize = () => {
+    const TranslateElement = googleWindow.google?.translate?.TranslateElement;
+    if (TranslateElement && !document.querySelector(".goog-te-combo")) {
+      const includedLanguages = SUPPORTED_LANGUAGES.map(item => GOOGLE_LANGUAGE_CODES[item.code] || item.code).join(",");
+      new TranslateElement({ pageLanguage: "en", includedLanguages, autoDisplay: false }, container!.id);
+    }
+    requestGoogleTranslation(language);
+  };
+
+  if (googleWindow.google?.translate?.TranslateElement) {
+    initialize();
+    return;
+  }
+
+  const scriptId = "novacrest-google-translate-script";
+  if (!document.getElementById(scriptId)) {
+    googleWindow.googleTranslateElementInit = initialize;
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    script.async = true;
+    document.head.appendChild(script);
+  }
 }
 
 export function LanguageSelector({ className = "" }: { className?: string }) {
@@ -52,6 +133,9 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     window.localStorage.setItem(STORAGE_KEY, language);
     document.documentElement.lang = language;
     document.documentElement.dir = RTL_LANGUAGES.has(language) ? "rtl" : "ltr";
+    setTranslationCookie(language);
+    ensureGoogleTranslate(language);
+    requestGoogleTranslation(language);
   }, [language]);
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(item => item.code === language);
