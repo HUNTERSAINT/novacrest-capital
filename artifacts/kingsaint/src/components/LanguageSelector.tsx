@@ -55,14 +55,21 @@ function getInitialLanguage() {
   return SUPPORTED_LANGUAGES.some(language => language.code === stored) ? stored! : DEFAULT_LANGUAGE;
 }
 
+function clearTranslationCookies() {
+  const expired = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  document.cookie = expired;
+  document.cookie = expired + "; domain=" + window.location.hostname;
+  document.cookie = expired + "; domain=." + window.location.hostname;
+}
+
 function setTranslationCookie(language: string) {
   if (language === DEFAULT_LANGUAGE) {
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    clearTranslationCookies();
     return;
   }
 
   const googleLanguage = GOOGLE_LANGUAGE_CODES[language] || language;
-  document.cookie = "googtrans=/en/" + googleLanguage + "; path=/";
+  document.cookie = "googtrans=/en/" + googleLanguage + "; path=/; SameSite=Lax";
 }
 
 function requestGoogleTranslation(language: string) {
@@ -145,6 +152,15 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     document.documentElement.lang = nextLanguage;
     document.documentElement.dir = RTL_LANGUAGES.has(nextLanguage) ? "rtl" : "ltr";
     setTranslationCookie(nextLanguage);
+
+    if (nextLanguage === DEFAULT_LANGUAGE) {
+      const combo = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+      if (combo) {
+        combo.value = DEFAULT_LANGUAGE;
+        combo.dispatchEvent(new Event("change"));
+      }
+    }
+
     setLanguage(nextLanguage);
     window.location.reload();
   };
