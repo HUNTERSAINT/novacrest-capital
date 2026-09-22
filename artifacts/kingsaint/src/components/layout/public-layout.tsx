@@ -4,6 +4,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { Menu, X, Smartphone, Download, CheckCircle } from "lucide-react";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -46,8 +47,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          {/* Right side: CTA + hamburger */}
+          {/* Right side: language + CTA + hamburger */}
           <div className="flex items-center gap-3">
+            <LanguageSelector className="hidden sm:flex" />
             {user ? (
               <Link href={user.role === 'admin' ? '/admin' : '/dashboard'}>
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-sm border border-primary/50 text-sm h-9 sm:h-10 px-4 sm:px-5">
@@ -81,6 +83,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile dropdown */}
         {mobileOpen && (
           <div className="md:hidden bg-card/95 backdrop-blur-md border-b border-white/10 px-4 pb-4 space-y-1">
+            <div className="px-3 pt-3 sm:hidden">
+              <LanguageSelector className="w-full" />
+            </div>
             {navLinks.map(n => n.modal ? (
               <button
                 key={n.label}
