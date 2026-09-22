@@ -62,9 +62,20 @@ function clearTranslationCookies() {
   document.cookie = expired + "; domain=." + window.location.hostname;
 }
 
+function setPageTranslationMode(language: string) {
+  const skipTranslation = language === DEFAULT_LANGUAGE;
+  document.documentElement.classList.toggle("notranslate", skipTranslation);
+  document.documentElement.toggleAttribute("translate", skipTranslation);
+  document.body?.classList.toggle("notranslate", skipTranslation);
+}
+
 function setTranslationCookie(language: string) {
   if (language === DEFAULT_LANGUAGE) {
     clearTranslationCookies();
+    const englishCookie = "googtrans=/en/en; path=/; SameSite=Lax";
+    document.cookie = englishCookie;
+    document.cookie = englishCookie + "; domain=" + window.location.hostname;
+    document.cookie = englishCookie + "; domain=." + window.location.hostname;
     return;
   }
 
@@ -141,6 +152,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     window.localStorage.setItem(STORAGE_KEY, language);
     document.documentElement.lang = language;
     document.documentElement.dir = RTL_LANGUAGES.has(language) ? "rtl" : "ltr";
+    setPageTranslationMode(language);
     setTranslationCookie(language);
     ensureGoogleTranslate(language);
     requestGoogleTranslation(language);
@@ -151,6 +163,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     window.localStorage.setItem(STORAGE_KEY, nextLanguage);
     document.documentElement.lang = nextLanguage;
     document.documentElement.dir = RTL_LANGUAGES.has(nextLanguage) ? "rtl" : "ltr";
+    setPageTranslationMode(nextLanguage);
     setTranslationCookie(nextLanguage);
 
     if (nextLanguage === DEFAULT_LANGUAGE) {
