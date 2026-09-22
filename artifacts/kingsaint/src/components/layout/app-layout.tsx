@@ -27,6 +27,7 @@ import {
 import { useLogout } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LiveChat } from "@/components/LiveChat";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const TOKEN_KEY = "novacrest_token";
 const ADMIN_TOKEN_KEY = "novacrest_admin_token";
@@ -238,6 +239,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             )}
+            <LanguageSelector />
             <NotificationBell />
           </div>
         </header>
