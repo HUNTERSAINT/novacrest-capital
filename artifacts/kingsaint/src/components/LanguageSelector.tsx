@@ -122,6 +122,7 @@ function ensureGoogleTranslate(language: string) {
     script.id = scriptId;
     script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     script.async = true;
+    script.onload = () => window.setTimeout(initialize, 0);
     document.head.appendChild(script);
   }
 }
