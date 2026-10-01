@@ -82,8 +82,8 @@ export default function Transactions() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-white capitalize">{tx.type}</p>
-                      {tx.description && (
-                        <p className="text-xs text-muted-foreground">{tx.description}</p>
+                      {tx.notes && (
+                        <p className="text-xs text-muted-foreground">{tx.notes}</p>
                       )}
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                         <Clock className="w-3 h-3" />

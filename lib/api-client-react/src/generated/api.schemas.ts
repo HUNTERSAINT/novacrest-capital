@@ -95,6 +95,7 @@ export type TransactionType = typeof TransactionType[keyof typeof TransactionTyp
 export const TransactionType = {
   deposit: 'deposit',
   withdrawal: 'withdrawal',
+  investment: 'investment',
   profit: 'profit',
   bonus: 'bonus',
   referral: 'referral',
@@ -246,6 +247,7 @@ export type InvestmentInputCryptoType = typeof InvestmentInputCryptoType[keyof t
 
 
 export const InvestmentInputCryptoType = {
+  USD: 'USD',
   BTC: 'BTC',
   ETH: 'ETH',
   USDT: 'USDT',
@@ -373,12 +375,6 @@ export interface AdminUserUpdate {
   balance?: number;
 }
 
-export interface DeductInput {
-  userId: number;
-  amount: number;
-  reason: string;
-}
-
 export type CreditInputType = typeof CreditInputType[keyof typeof CreditInputType];
 
 
@@ -407,8 +403,10 @@ export type GetTransactionsType = typeof GetTransactionsType[keyof typeof GetTra
 export const GetTransactionsType = {
   deposit: 'deposit',
   withdrawal: 'withdrawal',
+  investment: 'investment',
   profit: 'profit',
   bonus: 'bonus',
+  referral: 'referral',
 } as const;
 
 export type GetTransactionsStatus = typeof GetTransactionsStatus[keyof typeof GetTransactionsStatus];
@@ -436,6 +434,16 @@ export const GetAdminUsersStatus = {
   suspended: 'suspended',
   pending: 'pending',
 } as const;
+
+export type DeductUserBody = {
+  userId: number;
+  amount: number;
+  reason: string;
+};
+
+export type DeductUser200 = {
+  message: string;
+};
 
 export type GetAdminTransactionsParams = {
 status?: GetAdminTransactionsStatus;

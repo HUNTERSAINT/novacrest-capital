@@ -12,13 +12,20 @@ import {
 
 const router = Router();
 
+function transactionTypeForDisplay(tx: typeof transactionsTable.$inferSelect) {
+  if (tx.notes?.startsWith("Investment in ")) {
+    return "investment" as const;
+  }
+  return tx.type;
+}
+
 function formatTransaction(tx: typeof transactionsTable.$inferSelect, userEmail?: string | null, userFullName?: string | null) {
   return {
     id: tx.id,
     userId: tx.userId,
     userEmail: userEmail ?? null,
     userFullName: userFullName ?? null,
-    type: tx.type,
+    type: transactionTypeForDisplay(tx),
     amount: tx.amount,
     status: tx.status,
     cryptoType: tx.cryptoType,
@@ -47,7 +54,7 @@ router.get("/transactions", requireAuth, async (req, res): Promise<void> => {
     .limit(query.data.limit ?? 20);
 
   const filtered = transactions.filter(tx => {
-    if (query.data.type && tx.type !== query.data.type) return false;
+    if (query.data.type && transactionTypeForDisplay(tx) !== query.data.type) return false;
     if (query.data.status && tx.status !== query.data.status) return false;
     return true;
   });
@@ -76,7 +83,7 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
   const [submitter] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
   const isDeposit = parsed.data.type === "deposit";
   const txTitle = isDeposit ? "New Deposit Request" : "New Withdrawal Request";
-  const txMessage = `${submitter?.fullName ?? "A member"} submitted a ${parsed.data.type} of $${parseFloat(parsed.data.amount).toLocaleString()} (${parsed.data.cryptoType}).`;
+  const txMessage = `${submitter?.fullName ?? "A member"} submitted a ${parsed.data.type} of $${parsed.data.amount.toLocaleString()} (${parsed.data.cryptoType}).`;
   notifyAdmins({
     type: isDeposit ? "admin_deposit_request" : "admin_withdrawal_request",
     title: txTitle,

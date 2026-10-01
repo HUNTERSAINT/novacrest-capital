@@ -172,7 +172,7 @@ export const GetDashboardResponse = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -257,7 +257,7 @@ export const GetInvestmentsResponse = zod.array(GetInvestmentsResponseItem)
 export const CreateInvestmentBody = zod.object({
   "planId": zod.number(),
   "amount": zod.number(),
-  "cryptoType": zod.enum(['BTC', 'ETH', 'USDT', 'BNB', 'SOL']),
+  "cryptoType": zod.enum(['USD', 'BTC', 'ETH', 'USDT', 'BNB', 'SOL']),
   "walletAddress": zod.string()
 })
 
@@ -308,7 +308,7 @@ export const GetInvestmentResponse = zod.object({
 export const getTransactionsQueryLimitDefault = 20;
 
 export const GetTransactionsQueryParams = zod.object({
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus']).optional(),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']).optional(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']).optional(),
   "limit": zod.coerce.number().default(getTransactionsQueryLimitDefault)
 })
@@ -318,7 +318,7 @@ export const GetTransactionsResponseItem = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -347,7 +347,7 @@ export const CreateTransactionResponse = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -487,7 +487,7 @@ export const GetAdminUserResponse = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -532,6 +532,20 @@ export const UpdateAdminUserResponse = zod.object({
 
 
 /**
+ * @summary Deduct funds from a user account (admin)
+ */
+export const DeductUserBody = zod.object({
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "reason": zod.string()
+})
+
+export const DeductUserResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary List all transactions (admin)
  */
 export const getAdminTransactionsQueryLimitDefault = 20;
@@ -548,7 +562,7 @@ export const GetAdminTransactionsResponseItem = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -573,7 +587,7 @@ export const ApproveTransactionResponse = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -601,7 +615,7 @@ export const RejectTransactionResponse = zod.object({
   "userId": zod.number(),
   "userEmail": zod.string().nullish(),
   "userFullName": zod.string().nullish(),
-  "type": zod.enum(['deposit', 'withdrawal', 'profit', 'bonus', 'referral']),
+  "type": zod.enum(['deposit', 'withdrawal', 'investment', 'profit', 'bonus', 'referral']),
   "amount": zod.number(),
   "status": zod.enum(['pending', 'completed', 'failed', 'cancelled']),
   "cryptoType": zod.string(),
@@ -697,19 +711,6 @@ export const CreditUserBody = zod.object({
 })
 
 export const CreditUserResponse = zod.object({
-  "message": zod.string()
-})
-
-/**
- * @summary Manually deduct from a user's balance (admin)
- */
-export const DeductUserBody = zod.object({
-  "userId": zod.number(),
-  "amount": zod.number(),
-  "reason": zod.string()
-})
-
-export const DeductUserResponse = zod.object({
   "message": zod.string()
 })
 

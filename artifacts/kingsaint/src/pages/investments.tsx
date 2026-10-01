@@ -60,13 +60,14 @@ export default function Investments() {
       ) : (
         <div className="space-y-4">
           {investments.map((inv, i) => {
-            const isGold = tierGold.has(inv.plan?.tier ?? "");
-            const progress = inv.plan
-              ? Math.min(100, Math.round(
-                  ((Date.now() - new Date(inv.startDate).getTime()) /
-                    (inv.plan.durationDays * 86400000)) * 100
-                ))
+            const isGold = tierGold.has(inv.planTier ?? "");
+            const durationMs = inv.durationDays * 86400000;
+            const progress = durationMs > 0
+              ? Math.min(100, Math.max(0, Math.round(
+                  ((Date.now() - new Date(inv.startDate).getTime()) / durationMs) * 100
+                )))
               : 0;
+            const expectedProfit = inv.amount * inv.roiPercent / 100;
 
             return (
               <motion.div
@@ -79,8 +80,8 @@ export default function Investments() {
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <CardTitle className="font-serif text-xl text-white">{inv.plan?.name ?? "Unknown Plan"}</CardTitle>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{inv.plan?.tier} tier</p>
+                        <CardTitle className="font-serif text-xl text-white">{inv.planName}</CardTitle>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{inv.planTier ?? "Standard"} tier</p>
                       </div>
                       <Badge className={`rounded-sm capitalize text-xs border ${statusColor[inv.status] ?? ""}`}>
                         {inv.status}
@@ -96,12 +97,12 @@ export default function Investments() {
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Expected Profit</p>
                         <p className="text-green-400 font-medium flex items-center gap-1">
-                          <TrendingUp className="w-3.5 h-3.5" /> {fmt(inv.expectedProfit)}
+                          <TrendingUp className="w-3.5 h-3.5" /> {fmt(expectedProfit)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">ROI</p>
-                        <p className="text-primary font-medium">{inv.plan?.roiPercent}%</p>
+                        <p className="text-primary font-medium">{inv.roiPercent}%</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">

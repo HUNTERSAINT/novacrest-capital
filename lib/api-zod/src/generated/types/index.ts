@@ -18,6 +18,8 @@ export * from './creditInput';
 export * from './creditInputType';
 export * from './cryptoPrice';
 export * from './dashboardSummary';
+export * from './deductUser200';
+export * from './deductUserBody';
 export * from './errorResponse';
 export * from './getAdminTransactionsParams';
 export * from './getAdminTransactionsStatus';

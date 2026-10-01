@@ -287,7 +287,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [deposit, withdrawal, profit, bonus]
+            enum: [deposit, withdrawal, investment, profit, bonus, referral]
         - name: status
           in: query
           schema:
@@ -446,6 +446,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+
+  /admin/deduct-user:
+    post:
+      operationId: deductUser
+      tags: [admin]
+      summary: Deduct funds from a user account (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, amount, reason]
+              properties:
+                userId:
+                  type: number
+                amount:
+                  type: number
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: User balance deducted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
 
   /admin/transactions:
     get:
@@ -870,7 +901,7 @@ components:
           type: number
         cryptoType:
           type: string
-          enum: [BTC, ETH, USDT, BNB, SOL]
+          enum: [USD, BTC, ETH, USDT, BNB, SOL]
         walletAddress:
           type: string
 
@@ -888,7 +919,7 @@ components:
           type: ["string", "null"]
         type:
           type: string
-          enum: [deposit, withdrawal, profit, bonus, referral]
+          enum: [deposit, withdrawal, investment, profit, bonus, referral]
         amount:
           type: number
         status:

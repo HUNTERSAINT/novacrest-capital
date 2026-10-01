@@ -12,6 +12,7 @@ export type TransactionType = typeof TransactionType[keyof typeof TransactionTyp
 export const TransactionType = {
   deposit: 'deposit',
   withdrawal: 'withdrawal',
+  investment: 'investment',
   profit: 'profit',
   bonus: 'bonus',
   referral: 'referral',

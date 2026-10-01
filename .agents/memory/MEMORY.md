@@ -1,2 +1,3 @@
 - [pnpm Metro temp-dir crash](pnpm-metro-temp-crash.md) — Metro crashes with ENOENT after pnpm installs; fix: delete *_tmp_* dirs + blockList regex `/_tmp_\d+/` in metro.config.js (already applied).
 - [Supabase database migration](supabase-migration.md) — Production DB moved from Replit PostgreSQL to Supabase; Railway DATABASE_URL updated; use pooler (port 6543) not direct host.
+- [Orval export collisions](orval-export-collisions.md) — A generated request schema can collide with an exported type; explicitly re-export the runtime schema from the API module.

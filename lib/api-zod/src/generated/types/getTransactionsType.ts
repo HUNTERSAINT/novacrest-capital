@@ -12,6 +12,8 @@ export type GetTransactionsType = typeof GetTransactionsType[keyof typeof GetTra
 export const GetTransactionsType = {
   deposit: 'deposit',
   withdrawal: 'withdrawal',
+  investment: 'investment',
   profit: 'profit',
   bonus: 'bonus',
+  referral: 'referral',
 } as const;

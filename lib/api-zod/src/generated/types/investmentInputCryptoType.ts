@@ -10,6 +10,7 @@ export type InvestmentInputCryptoType = typeof InvestmentInputCryptoType[keyof t
 
 
 export const InvestmentInputCryptoType = {
+  USD: 'USD',
   BTC: 'BTC',
   ETH: 'ETH',
   USDT: 'USDT',

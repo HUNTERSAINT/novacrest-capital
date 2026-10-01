@@ -27,9 +27,10 @@ import type {
   AuthResponse,
   ChangePasswordInput,
   CreditInput,
-  DeductInput,
   CryptoPrice,
   DashboardSummary,
+  DeductUser200,
+  DeductUserBody,
   ErrorResponse,
   GetAdminTransactionsParams,
   GetAdminUsersParams,
@@ -1662,6 +1663,77 @@ export const useUpdateAdminUser = <TError = ErrorType<unknown>,
       return useMutation(getUpdateAdminUserMutationOptions(options));
     }
 
+export const getDeductUserUrl = () => {
+
+
+
+
+  return `/api/admin/deduct-user`
+}
+
+/**
+ * @summary Deduct funds from a user account (admin)
+ */
+export const deductUser = async (deductUserBody: DeductUserBody, options?: Parameters<typeof customFetch>[1]): Promise<DeductUser200> => {
+
+  return customFetch<DeductUser200>(getDeductUserUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(deductUserBody)
+  }
+);}
+
+
+
+
+
+export const getDeductUserMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductUserBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductUserBody>}, TContext> => {
+
+const mutationKey = ['deductUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deductUser>>, {data: BodyType<DeductUserBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  deductUser(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeductUserMutationResult = NonNullable<Awaited<ReturnType<typeof deductUser>>>
+    export type DeductUserMutationBody = BodyType<DeductUserBody>
+    export type DeductUserMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Deduct funds from a user account (admin)
+ */
+export const useDeductUser = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductUserBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deductUser>>,
+        TError,
+        {data: BodyType<DeductUserBody>},
+        TContext
+      > => {
+      return useMutation(getDeductUserMutationOptions(options));
+    }
+
 export const getGetAdminTransactionsUrl = (params?: GetAdminTransactionsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -2101,58 +2173,6 @@ export const useDeletePlan = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeletePlanMutationOptions(options));
-    }
-
-export const getDeductUserUrl = () => {
-  return `/api/admin/deduct-user`
-}
-
-/**
- * @summary Manually deduct from a user's balance (admin)
- */
-export const deductUser = async (deductInput: DeductInput, options?: Parameters<typeof customFetch>[1]): Promise<SuccessResponse> => {
-  return customFetch<SuccessResponse>(getDeductUserUrl(), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(deductInput)
-  });
-}
-
-export const getDeductUserMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductInput>}, TContext> => {
-const mutationKey = ['deductUser'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deductUser>>, {data: BodyType<DeductInput>}> = (props) => {
-          const {data} = props ?? {};
-          return deductUser(data, requestOptions)
-        }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-    export type DeductUserMutationResult = NonNullable<Awaited<ReturnType<typeof deductUser>>>
-    export type DeductUserMutationBody = BodyType<DeductInput>
-    export type DeductUserMutationError = ErrorType<unknown>
-
-    /**
- * @summary Manually deduct from a user's balance (admin)
- */
-export const useDeductUser = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deductUser>>, TError,{data: BodyType<DeductInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof deductUser>>,
-        TError,
-        {data: BodyType<DeductInput>},
-        TContext
-      > => {
-      return useMutation(getDeductUserMutationOptions(options));
     }
 
 export const getCreditUserUrl = () => {
