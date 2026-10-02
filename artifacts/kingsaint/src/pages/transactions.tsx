@@ -81,7 +81,9 @@ export default function Transactions() {
                       {typeIcon[tx.type] ?? <Clock className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white capitalize">{tx.type}</p>
+                      <p className="text-sm font-medium text-white capitalize">
+                        {tx.type === "investment" ? "Invested" : tx.type}
+                      </p>
                       {tx.notes && (
                         <p className="text-xs text-muted-foreground">{tx.notes}</p>
                       )}
