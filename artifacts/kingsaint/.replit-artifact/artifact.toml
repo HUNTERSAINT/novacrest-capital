@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "KingSaint Capital"
+description = "A premium luxury crypto investment platform with a black and gold theme. Features include tiered investment plans, user portfolio dashboard, admin control panel, transaction history, referral system, live crypto price tickers, and secure authentication."
+version = "1.0.0"
+id = "artifacts/kingsaint"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18377
+
+[services.development]
+run = "pnpm --filter @workspace/kingsaint run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/kingsaint", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/kingsaint/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18377"
+BASE_PATH = "/"

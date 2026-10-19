@@ -47,3 +47,8 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Private production exports and uploaded database backups
+/db/production-seed.sql
+/attached_assets/*.zip
+/.agents/memory/
