@@ -1,6 +1,7 @@
 import { and, count, eq, gte, min, notExists, or, sql } from "drizzle-orm";
 import { Router, type IRouter, type RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
+import type { Server } from "socket.io";
 import {
   blockedUsersTable,
   db,
@@ -236,7 +237,7 @@ router.post(
       }
 
       const [existingSwipe] = await tx
-        .select({ action: swipesTable.action })
+        .select({ id: swipesTable.id, action: swipesTable.action })
         .from(swipesTable)
         .where(
           and(
@@ -249,6 +250,8 @@ router.post(
         return { kind: "conflict" as const };
       }
 
+      let likeId: string | null = null;
+      let likeCreatedAt: Date | null = null;
       if (!existingSwipe) {
         if (
           body.data.action === "like" &&
@@ -280,17 +283,22 @@ router.post(
           }
         }
 
-        await tx
+        const [createdSwipe] = await tx
           .insert(swipesTable)
           .values({
             fromUserId: viewer.id,
             toUserId: profile.id,
             action: body.data.action,
           })
-          .onConflictDoNothing();
+          .onConflictDoNothing()
+          .returning({ id: swipesTable.id, createdAt: swipesTable.createdAt });
+        if (createdSwipe) {
+          likeId = body.data.action === "like" ? createdSwipe.id : null;
+          likeCreatedAt = body.data.action === "like" ? createdSwipe.createdAt : null;
+        }
 
         const [recordedSwipe] = await tx
-          .select({ action: swipesTable.action })
+          .select({ id: swipesTable.id, action: swipesTable.action })
           .from(swipesTable)
           .where(
             and(
@@ -301,6 +309,9 @@ router.post(
           .limit(1);
         if (recordedSwipe && recordedSwipe.action !== body.data.action) {
           return { kind: "conflict" as const };
+        }
+        if (body.data.action === "like" && !likeId && recordedSwipe) {
+          likeId = recordedSwipe.id;
         }
       }
 
@@ -323,8 +334,19 @@ router.post(
           const [userOneId, userTwoId] = canonicalPair(viewer.id, profile.id);
           await tx
             .insert(matchesTable)
-            .values({ userOneId, userTwoId })
+            .values({ userOneId, userTwoId, isMutual: Boolean(reciprocalLike) })
             .onConflictDoNothing();
+          if (reciprocalLike) {
+            await tx
+              .update(matchesTable)
+              .set({ isMutual: true })
+              .where(
+                and(
+                  eq(matchesTable.userOneId, userOneId),
+                  eq(matchesTable.userTwoId, userTwoId),
+                ),
+              );
+          }
           const [match] = await tx
             .select({ id: matchesTable.id })
             .from(matchesTable)
@@ -336,13 +358,13 @@ router.post(
             )
             .limit(1);
           if (match) {
-            matched = true;
+            matched = Boolean(reciprocalLike);
             matchId = match.id;
           }
         }
       }
 
-      return { kind: "ok" as const, matched, matchId };
+      return { kind: "ok" as const, matched, matchId, likeId, likeCreatedAt };
     });
 
     if (result.kind === "conflict") {
@@ -356,6 +378,37 @@ router.post(
         resetsAt: result.resetsAt,
       });
       return;
+    }
+
+    if (body.data.action === "like" && result.likeId && result.likeCreatedAt) {
+      const io = req.app.get("io") as Server | undefined;
+      if (io) {
+        const likeNotification = {
+          id: result.likeId,
+          matchId: result.matchId,
+          profile: {
+            id: viewer.id,
+            fullName: viewer.fullName,
+            age: ageOnDate(viewer.dateOfBirth),
+            gender: viewer.gender,
+            area: viewer.area,
+            bio: "",
+            photoPath: viewer.photoPaths[0] ?? "",
+            isVerified: viewer.isVerified,
+          },
+          createdAt: result.likeCreatedAt.toISOString(),
+          seenAt: null,
+        };
+        io.to(`user:${profile.id}`).emit("like:new", likeNotification);
+        if (result.matchId) {
+          io.to(`user:${viewer.id}`).emit("match:updated", {
+            matchId: result.matchId,
+          });
+          io.to(`user:${profile.id}`).emit("match:updated", {
+            matchId: result.matchId,
+          });
+        }
+      }
     }
 
     res.json(

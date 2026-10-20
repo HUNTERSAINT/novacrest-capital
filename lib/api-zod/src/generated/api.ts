@@ -299,7 +299,7 @@ export const GetDiscoveryFeedResponse = zod.object({
 
 
 /**
- * Free men may record up to five likes in a rolling 48-hour window. A mutual like can create a visible match, but chat remains Premium-only.
+ * Free men may record up to five likes in a rolling 48-hour window. Every like notifies the recipient and opens a conversation; only reciprocal likes are mutual matches.
  * @summary Like or pass on a profile
  */
 export const RecordSwipeParams = zod.object({
@@ -315,6 +315,44 @@ export const RecordSwipeResponse = zod.object({
   "matched": zod.boolean(),
   "matchId": zod.string().uuid().nullish()
 })
+
+
+/**
+ * Returns received likes with profile previews, conversation links, and read status. Blocked and banned accounts are excluded.
+ * @summary List members who liked the current user
+ */
+export const getLikesResponseLikesItemProfileAgeMin = 18;
+
+
+
+export const GetLikesResponse = zod.object({
+  "likes": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "matchId": zod.string().uuid(),
+  "profile": zod.object({
+  "id": zod.string().uuid(),
+  "fullName": zod.string(),
+  "age": zod.number().int().min(getLikesResponseLikesItemProfileAgeMin),
+  "gender": zod.enum(['male', 'female']),
+  "area": zod.string(),
+  "bio": zod.string(),
+  "photoPath": zod.string(),
+  "isVerified": zod.boolean()
+}),
+  "createdAt": zod.coerce.date(),
+  "seenAt": zod.coerce.date().nullable()
+}))
+})
+
+
+/**
+ * @summary Mark a received like notification as read
+ */
+export const MarkLikeReadParams = zod.object({
+  "likeId": zod.coerce.string().uuid()
+})
+
+export const MarkLikeReadResponse = zod.void()
 
 
 /**
@@ -342,8 +380,8 @@ export const GetFullProfileResponse = zod.object({
 
 
 /**
- * Women and men can view mutual matches for free. Men need active Premium to read or send chat messages and view full profiles.
- * @summary List the current user's matches
+ * Anyone can view conversations and incoming messages. Women can send messages for free; men need active Premium to send messages and view full profiles.
+ * @summary List the current user's matches and conversations
  */
 export const getMatchesResponseMatchesItemProfileAgeMin = 18;
 
@@ -366,13 +404,15 @@ export const GetMatchesResponse = zod.object({
 }),
   "lastMessage": zod.string().nullish(),
   "lastMessageAt": zod.coerce.date().nullish(),
-  "unreadCount": zod.number().int().min(getMatchesResponseMatchesItemUnreadCountMin)
+  "unreadCount": zod.number().int().min(getMatchesResponseMatchesItemUnreadCountMin),
+  "isMutual": zod.boolean(),
+  "youLiked": zod.boolean()
 }))
 })
 
 
 /**
- * @summary Get message history for a match
+ * @summary Get message history for a conversation
  */
 export const GetMatchMessagesParams = zod.object({
   "matchId": zod.coerce.string().uuid()
@@ -390,8 +430,8 @@ export const GetMatchMessagesResponse = zod.object({
 
 
 /**
- * Saves the message and emits it to the other matched user in real time.
- * @summary Send a message to a match
+ * Women may send messages for free. Men need active Premium. Messages are saved and delivered in real time.
+ * @summary Send a message to a conversation
  */
 export const SendMatchMessageParams = zod.object({
   "matchId": zod.coerce.string().uuid()
@@ -656,6 +696,38 @@ export const UpdateAdminUserStatusBody = zod.object({
 })
 
 export const UpdateAdminUserStatusResponse = zod.object({
+  "id": zod.string().uuid(),
+  "identifier": zod.string(),
+  "fullName": zod.string(),
+  "gender": zod.enum(['male', 'female']),
+  "isAdmin": zod.boolean(),
+  "isBanned": zod.boolean(),
+  "isVerified": zod.boolean(),
+  "verificationSelfieSubmitted": zod.boolean(),
+  "verificationSelfiePath": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "premiumUntil": zod.coerce.date().nullable(),
+  "hookupUntil": zod.coerce.date().nullable()
+})
+
+
+/**
+ * Extends Premium from the later of today or the member's current expiry date. Only administrators may grant access.
+ * @summary Grant Premium access to a member
+ */
+export const GrantAdminPremiumParams = zod.object({
+  "userId": zod.coerce.string().uuid()
+})
+
+export const grantAdminPremiumBodyDaysMax = 3650;
+
+
+
+export const GrantAdminPremiumBody = zod.object({
+  "days": zod.number().int().min(1).max(grantAdminPremiumBodyDaysMax)
+})
+
+export const GrantAdminPremiumResponse = zod.object({
   "id": zod.string().uuid(),
   "identifier": zod.string(),
   "fullName": zod.string(),

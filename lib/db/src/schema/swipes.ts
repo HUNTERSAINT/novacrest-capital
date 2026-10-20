@@ -24,6 +24,7 @@ export const swipesTable = pgTable(
       .references(() => usersTable.id, { onDelete: "cascade" }),
     action: swipeActionEnum("action").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    seenAt: timestamp("seen_at", { withTimezone: true }),
   },
   (table) => [
     uniqueIndex("swipes_from_to_unique").on(table.fromUserId, table.toUserId),

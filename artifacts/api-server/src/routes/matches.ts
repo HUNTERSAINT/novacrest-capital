@@ -18,6 +18,7 @@ import {
   db,
   matchesTable,
   messagesTable,
+  swipesTable,
   usersTable,
 } from "@workspace/db";
 import {
@@ -129,7 +130,7 @@ router.get(
 
 router.get("/matches", requireUser, async (req, res): Promise<void> => {
   const user = req.currentUser!;
-  const canViewChat =
+  const canViewFullProfile =
     user.gender === "female" ||
     Boolean(user.premiumUntil && user.premiumUntil.getTime() > Date.now());
   const matches = await db
@@ -156,48 +157,55 @@ router.get("/matches", requireUser, async (req, res): Promise<void> => {
       .limit(1);
     if (!profile) continue;
 
-    const [lastMessage] = canViewChat
-      ? await db
-          .select()
-          .from(messagesTable)
-          .where(eq(messagesTable.matchId, match.id))
-          .orderBy(desc(messagesTable.createdAt))
-          .limit(1)
-      : [];
+    const [lastMessage] = await db
+      .select()
+      .from(messagesTable)
+      .where(eq(messagesTable.matchId, match.id))
+      .orderBy(desc(messagesTable.createdAt))
+      .limit(1);
     const readAt =
       match.userOneId === user.id
         ? match.userOneLastReadAt
         : match.userTwoLastReadAt;
-    const [unread] = canViewChat
-      ? await db
-          .select({ value: count() })
-          .from(messagesTable)
-          .where(
-            and(
-              eq(messagesTable.matchId, match.id),
-              not(eq(messagesTable.senderId, user.id)),
-              gt(messagesTable.createdAt, readAt ?? new Date(0)),
-            ),
-          )
-      : [];
+    const [unread] = await db
+      .select({ value: count() })
+      .from(messagesTable)
+      .where(
+        and(
+          eq(messagesTable.matchId, match.id),
+          not(eq(messagesTable.senderId, user.id)),
+          gt(messagesTable.createdAt, readAt ?? new Date(0)),
+        ),
+      );
+    const [ownLike] = await db
+      .select({ id: swipesTable.id })
+      .from(swipesTable)
+      .where(
+        and(
+          eq(swipesTable.fromUserId, user.id),
+          eq(swipesTable.toUserId, otherId),
+          eq(swipesTable.action, "like"),
+        ),
+      )
+      .limit(1);
 
     result.push({
       id: match.id,
+      isMutual: match.isMutual,
+      youLiked: Boolean(ownLike),
       profile: {
         id: profile.id,
         fullName: profile.fullName,
         age: ageOnDate(profile.dateOfBirth),
         gender: profile.gender,
         area: profile.area,
-        bio: canViewChat ? profile.bio : "",
+        bio: canViewFullProfile ? profile.bio : "",
         photoPath: profile.photoPaths[0] ?? "",
         isVerified: profile.isVerified,
       },
-      lastMessage: canViewChat ? (lastMessage?.body ?? null) : null,
-      lastMessageAt: canViewChat
-        ? (lastMessage?.createdAt.toISOString() ?? null)
-        : null,
-      unreadCount: canViewChat ? Number(unread?.value ?? 0) : 0,
+      lastMessage: lastMessage?.body ?? null,
+      lastMessageAt: lastMessage?.createdAt.toISOString() ?? null,
+      unreadCount: Number(unread?.value ?? 0),
     });
   }
 
@@ -207,7 +215,6 @@ router.get("/matches", requireUser, async (req, res): Promise<void> => {
 router.get(
   "/matches/:matchId/messages",
   requireUser,
-  requirePremiumForMen,
   async (req, res): Promise<void> => {
     const params = GetMatchMessagesParams.safeParse(req.params);
     if (!params.success) {
@@ -308,7 +315,6 @@ router.post(
 router.post(
   "/matches/:matchId/read",
   requireUser,
-  requirePremiumForMen,
   async (req, res): Promise<void> => {
     const params = MarkMatchReadParams.safeParse(req.params);
     if (!params.success) {

@@ -5,7 +5,7 @@ import { Check, CircleAlert, LoaderCircle, Search, Shield, ShieldCheck, Users, W
 import {
   getGetAdminOverviewQueryKey, getGetAdminPaymentsQueryKey, getGetAdminReportsQueryKey,
   getGetAdminUsersQueryKey, getGetCurrentUserQueryKey, useGetAdminOverview, useGetAdminPayments,
-  useGetAdminReports, useGetAdminUsers, useGetCurrentUser, useReviewUserVerification,
+  useGetAdminReports, useGetAdminUsers, useGetCurrentUser, useGrantAdminPremium, useReviewUserVerification,
   useUpdateAdminReport, useUpdateAdminUserStatus,
 } from '@workspace/api-client-react';
 
@@ -19,11 +19,13 @@ export default function AdminPage() {
   const [search, setSearch] = useState('');
   const [reportView, setReportView] = useState<'open' | 'resolved'>('open');
   const [actionError, setActionError] = useState('');
+  const [grantDays, setGrantDays] = useState<Record<string, string>>({});
   const overview = useGetAdminOverview({ query: { queryKey: getGetAdminOverviewQueryKey(), enabled: !!current.data?.isAdmin, retry: false }, request });
   const users = useGetAdminUsers({ search: search.trim() || undefined }, { query: { queryKey: getGetAdminUsersQueryKey({ search: search.trim() || undefined }), enabled: !!current.data?.isAdmin, retry: false }, request });
   const reports = useGetAdminReports({ status: reportView }, { query: { queryKey: getGetAdminReportsQueryKey({ status: reportView }), enabled: !!current.data?.isAdmin, retry: false }, request });
   const payments = useGetAdminPayments({ query: { queryKey: getGetAdminPaymentsQueryKey(), enabled: !!current.data?.isAdmin, retry: false }, request });
   const setStatus = useUpdateAdminUserStatus({ request });
+  const grantPremium = useGrantAdminPremium({ request });
   const verify = useReviewUserVerification({ request });
   const setReport = useUpdateAdminReport({ request });
   const refresh = async () => Promise.all([
@@ -31,6 +33,20 @@ export default function AdminPage() {
     client.invalidateQueries({ queryKey: getGetAdminUsersQueryKey() }),
     client.invalidateQueries({ queryKey: getGetAdminReportsQueryKey() }),
   ]);
+  async function grantMemberPremium(userId: string) {
+    setActionError('');
+    const days = Number(grantDays[userId] ?? '30');
+    if (!Number.isInteger(days) || days < 1 || days > 3650) {
+      setActionError('Premium grants must be between 1 and 3,650 days.');
+      return;
+    }
+    try {
+      await grantPremium.mutateAsync({ userId, data: { days } });
+      await refresh();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Could not grant Premium.');
+    }
+  }
 
   if (current.isLoading) return <main className="admin-page"><div className="skeleton skeleton-title"/><div className="skeleton skeleton-card"/></main>;
   if (!current.data?.isAdmin) return <main className="admin-page"><section className="discover-state"><div className="state-icon"><Shield size={22}/></div><h2>Admin access only.</h2><p>This moderation workspace is limited to Orbit Zone administrators.</p><Link href="/discover" className="btn btn-primary">Back to Orbit Zone</Link></section></main>;
@@ -49,12 +65,13 @@ export default function AdminPage() {
     </section>
 
     <section className="admin-section">
-      <div className="admin-section-title"><div><h2>Members</h2><p>Review accounts, verification and access.</p></div><label className="admin-search"><Search size={16}/><input aria-label="Search members" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find a member" data-testid="admin-member-search"/></label></div>
-      {users.isLoading ? <div className="skeleton skeleton-card short"/> : users.isError ? <div className="inline-error"><CircleAlert size={15}/> Members could not load.</div> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Member</th><th>Account</th><th>Verification</th><th>Access</th><th>Actions</th></tr></thead><tbody>{(users.data?.users ?? []).map(person=><tr key={person.id}>
+      <div className="admin-section-title"><div><h2>Members</h2><p>Review accounts, verification and access. Premium grants extend from the current expiry date.</p></div><label className="admin-search"><Search size={16}/><input aria-label="Search members" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find a member" data-testid="admin-member-search"/></label></div>
+      {users.isLoading ? <div className="skeleton skeleton-card short"/> : users.isError ? <div className="inline-error"><CircleAlert size={15}/> Members could not load.</div> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Member</th><th>Account</th><th>Verification</th><th>Access</th><th>Premium</th><th>Actions</th></tr></thead><tbody>{(users.data?.users ?? []).map(person=><tr key={person.id}>
         <td><strong>{person.fullName}</strong><small>{person.gender} · joined {date(person.createdAt)}</small></td><td>{person.identifier}</td>
         <td><span className={`admin-pill ${person.isVerified?'good':''}`}>{person.isVerified?'Verified':person.verificationSelfieSubmitted?'Review requested':'Not verified'}</span>{person.verificationSelfiePath && <a className="admin-selfie" href={`/api/storage${person.verificationSelfiePath}`} target="_blank" rel="noreferrer">View private selfie</a>}</td>
         <td><span className={`admin-pill ${person.isBanned?'bad':'good'}`}>{person.isBanned?'Banned':'Active'}</span></td>
-        <td><div className="admin-row-actions"><button type="button" className="btn btn-outline admin-action" disabled={setStatus.isPending} onClick={async()=>{setActionError('');try{await setStatus.mutateAsync({userId:person.id,data:{isBanned:!person.isBanned}});await refresh();}catch(error){setActionError(error instanceof Error?error.message:'Could not update member access.');}}}>{person.isBanned?'Unban':'Ban'}</button>
+        <td><span className={`admin-pill ${person.premiumUntil && new Date(person.premiumUntil).getTime() > Date.now()?'good':''}`}>{person.premiumUntil && new Date(person.premiumUntil).getTime() > Date.now()?`Until ${date(person.premiumUntil)}`:'Not active'}</span></td>
+        <td><div className="admin-row-actions"><div className="admin-premium-grant"><input type="number" min={1} max={3650} step={1} aria-label={`Premium days for ${person.fullName}`} value={grantDays[person.id] ?? '30'} onChange={event=>setGrantDays(values=>({...values,[person.id]:event.target.value}))}/><button type="button" className="btn btn-primary admin-action" disabled={grantPremium.isPending} onClick={()=>void grantMemberPremium(person.id)}>Grant days</button></div><button type="button" className="btn btn-outline admin-action" disabled={setStatus.isPending} onClick={async()=>{setActionError('');try{await setStatus.mutateAsync({userId:person.id,data:{isBanned:!person.isBanned}});await refresh();}catch(error){setActionError(error instanceof Error?error.message:'Could not update member access.');}}}>{person.isBanned?'Unban':'Ban'}</button>
           {person.verificationSelfieSubmitted && <button type="button" className="btn btn-quiet admin-action" disabled={verify.isPending} onClick={async()=>{setActionError('');try{await verify.mutateAsync({userId:person.id,data:{isVerified:!person.isVerified}});await refresh();}catch(error){setActionError(error instanceof Error?error.message:'Could not update verification.');}}}>{person.isVerified?'Revoke verification':'Approve verification'}</button>}</div></td>
       </tr>)}</tbody></table>{!users.data?.users.length && <p className="admin-empty">No members found for that search.</p>}</div>}
     </section>
@@ -66,6 +83,6 @@ export default function AdminPage() {
       <div className="admin-section-title"><div><h2>Recent payments</h2><p>Transactions returned by the payment service.</p></div></div>
       {payments.isLoading ? <div className="skeleton skeleton-card short"/> : payments.isError ? <div className="inline-error"><CircleAlert size={15}/> Payments could not load.</div> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Reference</th><th>Member</th><th>Plan</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>{(payments.data?.payments ?? []).map(payment=><tr key={payment.id}><td>{payment.reference}</td><td>{payment.userIdentifier || 'Unavailable'}</td><td>{payment.plan}</td><td>{money(payment.amountKobo)}</td><td><span className={`admin-pill ${payment.status==='success'?'good':payment.status==='failed'?'bad':''}`}>{payment.status}</span></td><td>{date(payment.createdAt)}</td></tr>)}</tbody></table>{!payments.data?.payments.length&&<p className="admin-empty">No payments to show.</p>}</div>}
     </section>
-    {(setStatus.isPending||verify.isPending||setReport.isPending)&&<div className="admin-saving" role="status"><LoaderCircle size={15} className="spin"/> Saving moderation decision</div>}
+     {(setStatus.isPending||grantPremium.isPending||verify.isPending||setReport.isPending)&&<div className="admin-saving" role="status"><LoaderCircle size={15} className="spin"/> Saving admin change</div>}
   </main>;
 }

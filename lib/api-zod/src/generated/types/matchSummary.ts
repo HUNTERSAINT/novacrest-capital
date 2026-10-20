@@ -16,4 +16,6 @@ export interface MatchSummary {
   lastMessageAt?: Date | null;
   /** @minimum 0 */
   unreadCount: number;
+  isMutual: boolean;
+  youLiked: boolean;
 }

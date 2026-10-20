@@ -22,6 +22,7 @@ import type {
 import type {
   AdminOverview,
   AdminPaymentsResponse,
+  AdminPremiumGrantInput,
   AdminReport,
   AdminReportUpdateInput,
   AdminReportsResponse,
@@ -37,6 +38,7 @@ import type {
   GetAdminUsersParams,
   HealthStatus,
   InitializePaymentInput,
+  LikesResponse,
   LoginInput,
   MatchesResponse,
   Message,
@@ -997,7 +999,7 @@ export const getRecordSwipeUrl = (profileId: string,) => {
 }
 
 /**
- * Free men may record up to five likes in a rolling 48-hour window. A mutual like can create a visible match, but chat remains Premium-only.
+ * Free men may record up to five likes in a rolling 48-hour window. Every like notifies the recipient and opens a conversation; only reciprocal likes are mutual matches.
  * @summary Like or pass on a profile
  */
 export const recordSwipe = async (profileId: string,
@@ -1076,6 +1078,158 @@ export const useRecordSwipe = <TError = ErrorType<ErrorEnvelope | FreeLikeLimitE
         TContext
       > => {
       return useMutation(getRecordSwipeMutationOptions(options));
+    }
+
+export const getGetLikesUrl = () => {
+
+
+
+
+  return `/api/likes`
+}
+
+/**
+ * Returns received likes with profile previews, conversation links, and read status. Blocked and banned accounts are excluded.
+ * @summary List members who liked the current user
+ */
+export const getLikes = async ( options?: Parameters<typeof customFetch>[1]): Promise<LikesResponse> => {
+
+  return customFetch<LikesResponse>(getGetLikesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLikesQueryKey = () => {
+    return [
+    `/api/likes`
+    ] as const;
+    }
+
+
+export const getGetLikesQueryOptions = <TData = Awaited<ReturnType<typeof getLikes>>, TError = ErrorType<ErrorEnvelope>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLikes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLikesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLikes>>> = ({ signal }) => getLikes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLikes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLikesQueryResult = NonNullable<Awaited<ReturnType<typeof getLikes>>>
+export type GetLikesQueryError = ErrorType<ErrorEnvelope>
+
+
+/**
+ * @summary List members who liked the current user
+ */
+
+export function useGetLikes<TData = Awaited<ReturnType<typeof getLikes>>, TError = ErrorType<ErrorEnvelope>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLikes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLikesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkLikeReadUrl = (likeId: string,) => {
+
+
+
+
+  return `/api/likes/${likeId}/read`
+}
+
+/**
+ * @summary Mark a received like notification as read
+ */
+export const markLikeRead = async (likeId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getMarkLikeReadUrl(likeId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkLikeReadMutationKey = () => ['markLikeRead'] as const;
+
+export const getMarkLikeReadMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markLikeRead>>, TError,MarkLikeReadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markLikeRead>>, TError,MarkLikeReadMutationVariables, TContext> => {
+
+const mutationKey = getMarkLikeReadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markLikeRead>>, MarkLikeReadMutationVariables> = (props) => {
+          const {likeId} = props ?? {};
+
+          return  markLikeRead(likeId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkLikeReadMutationResult = NonNullable<Awaited<ReturnType<typeof markLikeRead>>>
+
+    export type MarkLikeReadMutationError = ErrorType<ErrorEnvelope>
+    export type MarkLikeReadMutationVariables = {likeId: string}
+
+    /**
+ * @summary Mark a received like notification as read
+ */
+export const useMarkLikeRead = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markLikeRead>>, TError,MarkLikeReadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markLikeRead>>,
+        TError,
+        MarkLikeReadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkLikeReadMutationOptions(options));
     }
 
 export const getGetFullProfileUrl = (profileId: string,) => {
@@ -1165,8 +1319,8 @@ export const getGetMatchesUrl = () => {
 }
 
 /**
- * Women and men can view mutual matches for free. Men need active Premium to read or send chat messages and view full profiles.
- * @summary List the current user's matches
+ * Anyone can view conversations and incoming messages. Women can send messages for free; men need active Premium to send messages and view full profiles.
+ * @summary List the current user's matches and conversations
  */
 export const getMatches = async ( options?: Parameters<typeof customFetch>[1]): Promise<MatchesResponse> => {
 
@@ -1213,7 +1367,7 @@ export type GetMatchesQueryError = ErrorType<ErrorEnvelope>
 
 
 /**
- * @summary List the current user's matches
+ * @summary List the current user's matches and conversations
  */
 
 export function useGetMatches<TData = Awaited<ReturnType<typeof getMatches>>, TError = ErrorType<ErrorEnvelope>>(
@@ -1243,7 +1397,7 @@ export const getGetMatchMessagesUrl = (matchId: string,) => {
 }
 
 /**
- * @summary Get message history for a match
+ * @summary Get message history for a conversation
  */
 export const getMatchMessages = async (matchId: string, options?: Parameters<typeof customFetch>[1]): Promise<MessagesResponse> => {
 
@@ -1290,7 +1444,7 @@ export type GetMatchMessagesQueryError = ErrorType<ErrorEnvelope>
 
 
 /**
- * @summary Get message history for a match
+ * @summary Get message history for a conversation
  */
 
 export function useGetMatchMessages<TData = Awaited<ReturnType<typeof getMatchMessages>>, TError = ErrorType<ErrorEnvelope>>(
@@ -1320,8 +1474,8 @@ export const getSendMatchMessageUrl = (matchId: string,) => {
 }
 
 /**
- * Saves the message and emits it to the other matched user in real time.
- * @summary Send a message to a match
+ * Women may send messages for free. Men need active Premium. Messages are saved and delivered in real time.
+ * @summary Send a message to a conversation
  */
 export const sendMatchMessage = async (matchId: string,
     messageInput: MessageInput, options?: Parameters<typeof customFetch>[1]): Promise<Message> => {
@@ -1388,7 +1542,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SendMatchMessageMutationVariables = {matchId: string;data: BodyType<MessageInput>}
 
     /**
- * @summary Send a message to a match
+ * @summary Send a message to a conversation
  */
 export const useSendMatchMessage = <TError = ErrorType<ErrorEnvelope>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendMatchMessage>>, TError,SendMatchMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -2386,6 +2540,96 @@ export const useUpdateAdminUserStatus = <TError = ErrorType<ErrorEnvelope>,
         TContext
       > => {
       return useMutation(getUpdateAdminUserStatusMutationOptions(options));
+    }
+
+export const getGrantAdminPremiumUrl = (userId: string,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/premium`
+}
+
+/**
+ * Extends Premium from the later of today or the member's current expiry date. Only administrators may grant access.
+ * @summary Grant Premium access to a member
+ */
+export const grantAdminPremium = async (userId: string,
+    adminPremiumGrantInput: AdminPremiumGrantInput, options?: Parameters<typeof customFetch>[1]): Promise<AdminUser> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AdminUser>(getGrantAdminPremiumUrl(userId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(adminPremiumGrantInput)
+  }
+);}
+
+
+
+
+
+export const getGrantAdminPremiumMutationKey = () => ['grantAdminPremium'] as const;
+
+export const getGrantAdminPremiumMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantAdminPremium>>, TError,GrantAdminPremiumMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof grantAdminPremium>>, TError,GrantAdminPremiumMutationVariables, TContext> => {
+
+const mutationKey = getGrantAdminPremiumMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof grantAdminPremium>>, GrantAdminPremiumMutationVariables> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  grantAdminPremium(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GrantAdminPremiumMutationResult = NonNullable<Awaited<ReturnType<typeof grantAdminPremium>>>
+    export type GrantAdminPremiumMutationBody = BodyType<AdminPremiumGrantInput>
+    export type GrantAdminPremiumMutationError = ErrorType<ErrorEnvelope>
+    export type GrantAdminPremiumMutationVariables = {userId: string;data: BodyType<AdminPremiumGrantInput>}
+
+    /**
+ * @summary Grant Premium access to a member
+ */
+export const useGrantAdminPremium = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantAdminPremium>>, TError,GrantAdminPremiumMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof grantAdminPremium>>,
+        TError,
+        GrantAdminPremiumMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGrantAdminPremiumMutationOptions(options));
     }
 
 export const getGetAdminReportsUrl = (params?: GetAdminReportsParams,) => {

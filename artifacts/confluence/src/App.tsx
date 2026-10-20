@@ -1,13 +1,14 @@
 import { type ChangeEvent, type FormEvent, type ReactNode, lazy, Suspense, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { io } from 'socket.io-client';
 import {
   Activity, ArrowRight, Camera, Check, ChevronDown, CircleAlert,
   Heart, ImagePlus, KeyRound, LoaderCircle, LogOut, MapPin, MessageCircle, ShieldCheck, Trash2, UserRound,
   Waves, X,
 } from 'lucide-react';
 import {
-  getGetCurrentUserQueryKey, getGetMyProfileQueryKey, getHealthCheckQueryKey,
-  useDeleteMyAccount, useGetCurrentUser, useGetMyProfile, useHealthCheck, useLoginAccount,
+  getGetCurrentUserQueryKey, getGetLikesQueryKey, getGetMyProfileQueryKey, getHealthCheckQueryKey,
+  useDeleteMyAccount, useGetCurrentUser, useGetLikes, useGetMyProfile, useHealthCheck, useLoginAccount,
   useLogoutAccount, useRegisterAccount, useRequestUploadUrl, useSubmitVerificationSelfie,
   useUpdateMyProfile,
 } from '@workspace/api-client-react';
@@ -22,6 +23,7 @@ const DiscoverPage = lazy(() => import('@/pages/discover'));
 const AdminPage = lazy(() => import('@/pages/admin'));
 const FullProfilePage = lazy(() => import('@/pages/community').then((page) => ({ default: page.FullProfilePage })));
 const MatchesPage = lazy(() => import('@/pages/community').then((page) => ({ default: page.MatchesPage })));
+const LikesPage = lazy(() => import('@/pages/community').then((page) => ({ default: page.LikesPage })));
 const ChatPage = lazy(() => import('@/pages/community').then((page) => ({ default: page.ChatPage })));
 const SearchPage = lazy(() => import('@/pages/community').then((page) => ({ default: page.SearchPage })));
 const PlanPage = lazy(() => import('@/pages/community').then((page) => ({ default: page.PlanPage })));
@@ -64,15 +66,53 @@ function Field({ label, children, hint }: { label: string; children: ReactNode; 
 
 function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
+  const client = useQueryClient();
   const session = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), retry: false }, request: { credentials: 'include' } });
   const policyOrAuth = ['/', '/login', '/register', '/terms', '/privacy'].includes(location);
   const showSignedInNav = !!session.data && !policyOrAuth;
+  const likes = useGetLikes({
+    query: {
+      queryKey: getGetLikesQueryKey(),
+      enabled: showSignedInNav,
+      retry: false,
+      refetchInterval: 30_000,
+    },
+    request: { credentials: 'include' },
+  });
+  const unreadLikes = likes.data?.likes.filter((like) => !like.seenAt).length ?? 0;
+  const [likeAlert, setLikeAlert] = useState<string | null>(null);
+  useEffect(() => {
+    if (!showSignedInNav) return;
+    const socket = io({ path: '/socket.io', withCredentials: true });
+    const refreshInbox = () => {
+      void client.invalidateQueries({ queryKey: getGetLikesQueryKey() });
+      void client.invalidateQueries({ queryKey: ['getMatches'] });
+    };
+    const onNewLike = (notification: { profile?: { fullName?: string } }) => {
+      setLikeAlert(notification.profile?.fullName || 'Someone nearby');
+      refreshInbox();
+    };
+    socket.on('like:new', onNewLike);
+    socket.on('match:updated', refreshInbox);
+    return () => {
+      socket.off('like:new', onNewLike);
+      socket.off('match:updated', refreshInbox);
+      socket.disconnect();
+    };
+  }, [client, showSignedInNav, session.data?.id]);
+  useEffect(() => {
+    if (!likeAlert) return;
+    const timeout = window.setTimeout(() => setLikeAlert(null), 7000);
+    return () => window.clearTimeout(timeout);
+  }, [likeAlert]);
   return <div className="app-shell">
-    <header className="topbar"><div className="topbar-inner"><Link href="/" className="brand-link" data-testid="link-home"><Brand /></Link>{showSignedInNav && <nav className="topbar-nav" aria-label="Main navigation"><Link href="/discover" className={location === '/discover' ? 'discover-nav-active' : ''} data-testid="link-discover">Discover</Link>{session.data?.gender === 'male' && <Link href="/search" data-testid="link-search">Search</Link>}<Link href="/matches" data-testid="link-matches">Matches</Link><Link href="/profile" data-testid="link-profile">Profile</Link><Link href="/plan" data-testid="link-plan">Plan</Link>{session.data?.isAdmin && <Link href="/admin">Admin</Link>}<div className="topbar-loc"><MapPin size={14} /> Lokoja, Kogi</div></nav>}</div></header>
+    <header className="topbar"><div className="topbar-inner"><Link href="/" className="brand-link" data-testid="link-home"><Brand /></Link>{showSignedInNav && <nav className="topbar-nav" aria-label="Main navigation"><Link href="/discover" className={location === '/discover' ? 'discover-nav-active' : ''} data-testid="link-discover">Discover</Link>{session.data?.gender === 'male' && <Link href="/search" data-testid="link-search">Search</Link>}<Link href="/likes" className={location === '/likes' ? 'discover-nav-active' : ''} data-testid="link-likes">Likes{unreadLikes > 0 && <span className="nav-like-badge" aria-label={`${unreadLikes} new likes`}>{unreadLikes}</span>}</Link><Link href="/matches" data-testid="link-matches">Matches</Link><Link href="/profile" data-testid="link-profile">Profile</Link><Link href="/plan" data-testid="link-plan">Plan</Link>{session.data?.isAdmin && <Link href="/admin">Admin</Link>}<div className="topbar-loc"><MapPin size={14} /> Lokoja, Kogi</div></nav>}</div></header>
     <main>{children}</main>
+    {showSignedInNav && likeAlert && <div className="like-live-notice" role="status"><Heart size={18} fill="currentColor" /><div><strong>{likeAlert} likes you</strong><small>Open Likes to see their profile and message.</small></div><Link href="/likes" onClick={() => setLikeAlert(null)} className="btn btn-outline">View</Link><button type="button" className="like-notice-close" aria-label="Dismiss like notification" onClick={() => setLikeAlert(null)}><X size={16} /></button></div>}
     {showSignedInNav && <nav className="nav-mobile" aria-label="Main navigation">
       <Link href="/discover" className={location === '/discover' ? 'active' : ''}><Heart size={17} />Discover</Link>
       {session.data?.gender === 'male' && <Link href="/search" className={location === '/search' ? 'active' : ''}><MapPin size={17} />Search</Link>}
+      <Link href="/likes" className={location === '/likes' ? 'active' : ''}><Heart size={17} />Likes{unreadLikes > 0 && <span className="nav-like-badge" aria-label={`${unreadLikes} new likes`}>{unreadLikes}</span>}</Link>
       <Link href="/matches" className={location.startsWith('/matches') || location.startsWith('/chat/') ? 'active' : ''}><Activity size={17} />Matches</Link>
       <Link href="/profile" className={location === '/profile' ? 'active' : ''}><UserRound size={17} />Profile</Link>
     </nav>}
@@ -522,6 +562,7 @@ function DiscoverRoute() {
 }
 function FullProfileRoute() { return <AppShell><FullProfilePage /></AppShell>; }
 function MatchesRoute() { return <AppShell><MatchesPage /></AppShell>; }
+function LikesRoute() { return <AppShell><LikesPage /></AppShell>; }
 function ChatRoute() { return <AppShell><ChatPage /></AppShell>; }
 function SearchRoute() { return <AppShell><SearchPage /></AppShell>; }
 function PlanRoute() { return <AppShell><PlanPage /></AppShell>; }
@@ -543,6 +584,7 @@ function Router() {
     <Route path="/discover" component={DiscoverRoute} />
     <Route path="/profiles/:profileId" component={FullProfileRoute} />
     <Route path="/matches" component={MatchesRoute} />
+    <Route path="/likes" component={LikesRoute} />
     <Route path="/chat/:matchId" component={ChatRoute} />
     <Route path="/search" component={SearchRoute} />
     <Route path="/plan" component={PlanRoute} />

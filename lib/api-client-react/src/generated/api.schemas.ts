@@ -237,6 +237,19 @@ export interface SwipeResult {
   matchId?: string | null;
 }
 
+export interface LikeNotification {
+  id: string;
+  matchId: string;
+  profile: DiscoveryProfile;
+  createdAt: string;
+  /** @nullable */
+  seenAt: string | null;
+}
+
+export interface LikesResponse {
+  likes: LikeNotification[];
+}
+
 export interface VerificationDecision {
   isVerified: boolean;
 }
@@ -270,6 +283,8 @@ export interface MatchSummary {
   lastMessageAt?: string | null;
   /** @minimum 0 */
   unreadCount: number;
+  isMutual: boolean;
+  youLiked: boolean;
 }
 
 export interface MatchesResponse {
@@ -475,6 +490,14 @@ export interface AdminUsersResponse {
 
 export interface AdminUserStatusInput {
   isBanned: boolean;
+}
+
+export interface AdminPremiumGrantInput {
+  /**
+     * @minimum 1
+     * @maximum 3650
+     */
+  days: number;
 }
 
 export type AdminReportReason = typeof AdminReportReason[keyof typeof AdminReportReason];

@@ -7,6 +7,9 @@ import {
   GetAdminReportsResponse,
   GetAdminUsersQueryParams,
   GetAdminUsersResponse,
+  GrantAdminPremiumBody,
+  GrantAdminPremiumParams,
+  GrantAdminPremiumResponse,
   UpdateAdminReportBody,
   UpdateAdminReportParams,
   UpdateAdminReportResponse,
@@ -25,6 +28,7 @@ import { requireAdmin, requireUser } from "../middlewares/require-auth";
 const router: IRouter = Router();
 const reporterTable = aliasedTable(usersTable, "reporter");
 const targetTable = aliasedTable(usersTable, "report_target");
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function toAdminUser(user: typeof usersTable.$inferSelect) {
   return {
@@ -167,6 +171,45 @@ router.patch(
       return;
     }
     res.json(UpdateAdminUserStatusResponse.parse(toAdminUser(updated)));
+  },
+);
+
+router.patch(
+  "/admin/users/:userId/premium",
+  requireUser,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const params = GrantAdminPremiumParams.safeParse(req.params);
+    const body = GrantAdminPremiumBody.safeParse(req.body);
+    if (!params.success || !body.success) {
+      res.status(400).json({ error: "Choose a Premium duration from 1 to 3,650 days." });
+      return;
+    }
+
+    const [target] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, params.data.userId))
+      .limit(1);
+    if (!target) {
+      res.status(404).json({ error: "Member not found." });
+      return;
+    }
+
+    const premiumUntil = new Date(
+      Math.max(Date.now(), target.premiumUntil?.getTime() ?? 0) +
+        body.data.days * DAY_MS,
+    );
+    const [updated] = await db
+      .update(usersTable)
+      .set({ premiumUntil })
+      .where(eq(usersTable.id, target.id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Member not found." });
+      return;
+    }
+    res.json(GrantAdminPremiumResponse.parse(toAdminUser(updated)));
   },
 );
 

@@ -7,11 +7,11 @@ import {
   MessageCircle, RefreshCw, Search, ShieldCheck, Sparkles, Send, Flag, Ban,
 } from 'lucide-react';
 import {
-  getGetCurrentUserQueryKey, getGetMatchMessagesQueryKey, getGetMatchesQueryKey,
+  getGetCurrentUserQueryKey, getGetLikesQueryKey, getGetMatchMessagesQueryKey, getGetMatchesQueryKey,
   getGetMyPlanQueryKey, getGetFullProfileQueryKey,
   getSearchProfilesQueryKey,
-  useGetCurrentUser, useGetFullProfile, useGetMatches, useGetMatchMessages,
-  useGetMyPlan, useMarkMatchRead, useSearchProfiles, useSendMatchMessage,
+  useGetCurrentUser, useGetFullProfile, useGetLikes, useGetMatches, useGetMatchMessages,
+  useGetMyPlan, useMarkLikeRead, useMarkMatchRead, useSearchProfiles, useSendMatchMessage,
   useSubmitReport, useBlockUser, useInitializePayment, useVerifyPayment,
 } from '@workspace/api-client-react';
 import type { Message, SearchProfilesParams, ReportInput } from '@workspace/api-client-react';
@@ -101,23 +101,72 @@ export function MatchesPage() {
   const current = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), retry: false }, request });
   const plan = useGetMyPlan({ query: { queryKey: getGetMyPlanQueryKey(), retry: false }, request });
   const query = useGetMatches({ query: { queryKey: getGetMatchesQueryKey(), retry: false, enabled: !!current.data }, request });
-  const canChat = !!plan.data && (plan.data.isWoman || plan.data.premiumActive);
+  const canSend = !!plan.data && (plan.data.isWoman || plan.data.premiumActive);
   if (query.isLoading || current.isLoading || plan.isLoading) return <LoadingState />;
   if (current.isError || !current.data) return <section className="community-page"><ErrorState title="Your matches haven’t loaded" retry={() => void current.refetch()} /></section>;
   if (plan.isError) return <section className="community-page"><ErrorState title="Access status is unavailable" retry={() => void plan.refetch()} /></section>;
   if (query.isError) return <section className="community-page"><ErrorState title="Your matches haven’t loaded" retry={() => void query.refetch()} /></section>;
   const matches = query.data?.matches ?? [];
   return <section className="community-page">
-    <Heading eyebrow="The beginning of something" title={<>Your <span>matches.</span></>} copy={canChat ? 'A mutual hello is a lovely place to start. Keep it kind, local, and at your own pace.' : 'Mutual matches are free to view. Upgrade to Premium when you are ready to start chatting.'} action={<Link href="/discover" className="btn btn-outline">Discover people <ArrowRight size={15} /></Link>} />
+    <Heading eyebrow="The beginning of something" title={<>Your <span>connections.</span></>} copy="A like opens a conversation. Women can message freely; men need Premium to send or reply." action={<Link href="/discover" className="btn btn-outline">Discover people <ArrowRight size={15} /></Link>} />
     <div className="community-panel">
-      {matches.length === 0 ? <div className="discover-state" style={{ boxShadow: 'none', border: 0 }}><div className="state-icon"><Heart /></div><h2>No mutual hellos yet.</h2><p>When someone you like likes you back, your match will appear here. Keep meeting your neighbors.</p><Link href="/discover" className="btn btn-primary">Go to Discover <ArrowRight size={16} /></Link></div> :
-        matches.map((match) => <Link key={match.id} href={canChat ? `/chat/${match.id}` : '/plan'} className="match-row" data-testid={`match-row-${match.id}`}>
+      {matches.length === 0 ? <div className="discover-state" style={{ boxShadow: 'none', border: 0 }}><div className="state-icon"><Heart /></div><h2>No connections yet.</h2><p>When someone likes you, or you like someone, the conversation will appear here.</p><Link href="/discover" className="btn btn-primary">Go to Discover <ArrowRight size={16} /></Link></div> :
+        matches.map((match) => <Link key={match.id} href={`/chat/${match.id}`} className="match-row" data-testid={`match-row-${match.id}`}>
           <img src={imageUrl(match.profile.photoPath)} alt="" loading="lazy" />
-          <div><h2>{match.profile.fullName}, {match.profile.age}</h2><p>{canChat ? (match.lastMessage || 'You matched. Say hello when you’re ready.') : 'You matched. Upgrade to Premium to start chatting.'}</p></div>
-          {!canChat && <span style={{ color: '#b43e5d', fontSize: 10, fontWeight: 800 }}>Upgrade</span>}
-          {canChat && match.unreadCount > 0 && <span className="unread-pill">{match.unreadCount}</span>}
-          {canChat && match.unreadCount === 0 && <MessageCircle size={17} color="#c34c69" />}
+          <div><h2>{match.profile.fullName}, {match.profile.age}</h2><p>{match.lastMessage || (match.isMutual ? 'You both liked each other. Say hello.' : match.youLiked ? 'You liked them. Start a conversation.' : 'They liked you. Start a conversation.')}</p></div>
+          {!canSend && current.data.gender === 'male' ? <span className="premium-reply-pill">Premium to reply</span> : match.unreadCount > 0 ? <span className="unread-pill">{match.unreadCount}</span> : <MessageCircle size={17} color="#c34c69" />}
         </Link>)}
+    </div>
+  </section>;
+}
+
+export function LikesPage() {
+  const [, navigate] = useLocation();
+  const client = useQueryClient();
+  const current = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), retry: false }, request });
+  const query = useGetLikes({
+    query: {
+      queryKey: getGetLikesQueryKey(),
+      enabled: !!current.data,
+      retry: false,
+      refetchInterval: 30_000,
+    },
+    request,
+  });
+  const markRead = useMarkLikeRead({ request });
+  const [actionError, setActionError] = useState('');
+
+  async function openConversation(likeId: string, matchId: string) {
+    setActionError('');
+    try {
+      await markRead.mutateAsync({ likeId });
+      await client.invalidateQueries({ queryKey: getGetLikesQueryKey() });
+      navigate(`/chat/${matchId}`);
+    } catch (error) {
+      setActionError(messageOf(error));
+    }
+  }
+
+  if (current.isLoading || query.isLoading) return <LoadingState />;
+  if (current.isError || !current.data) return <section className="community-page"><ErrorState title="Your likes haven’t loaded" retry={() => void current.refetch()} /></section>;
+  if (query.isError) return <section className="community-page"><ErrorState title="Your likes haven’t loaded" retry={() => void query.refetch()} /></section>;
+
+  const likes = query.data?.likes ?? [];
+  return <section className="community-page">
+    <Heading eyebrow="A new hello" title={<>People who <span>like you.</span></>} copy="Every like appears here with the member’s profile preview. Open a conversation to read or send a message." action={<Link href="/matches" className="btn btn-outline">Your conversations <MessageCircle size={15} /></Link>} />
+    {actionError && <div className="inline-error" role="alert"><CircleAlert size={15} />{actionError}</div>}
+    <div className="community-panel">
+      {likes.length === 0 ? <div className="discover-state" style={{ boxShadow: 'none', border: 0 }}><div className="state-icon"><Heart /></div><h2>No likes yet.</h2><p>When someone likes your profile, you’ll see their name here and can open a conversation.</p><Link href="/discover" className="btn btn-primary">Discover people <ArrowRight size={16} /></Link></div> :
+        likes.map((like) => <article key={like.id} className="match-row" data-testid={`like-row-${like.id}`}>
+          <img src={imageUrl(like.profile.photoPath)} alt={`Profile photo of ${like.profile.fullName}`} loading="lazy" />
+          <div><h2>{like.profile.fullName}, {like.profile.age}</h2><p>Liked you · {new Date(like.createdAt).toLocaleDateString([], { dateStyle: 'medium' })}</p></div>
+          <div className="like-row-actions">
+            {!like.seenAt && <span className="unread-pill">New</span>}
+            <button type="button" className="btn btn-primary admin-action" disabled={markRead.isPending} onClick={() => void openConversation(like.id, like.matchId)} aria-label={`Open conversation with ${like.profile.fullName}`}>
+              <MessageCircle size={14} /> Message
+            </button>
+          </div>
+        </article>)}
     </div>
   </section>;
 }
@@ -130,9 +179,9 @@ export function ChatPage() {
   const [error, setError] = useState('');
   const current = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), retry: false }, request });
   const plan = useGetMyPlan({ query: { queryKey: getGetMyPlanQueryKey(), retry: false }, request });
-  const matches = useGetMatches({ query: { queryKey: getGetMatchesQueryKey(), retry: false, enabled: !!current.data && (!!plan.data?.isWoman || !!plan.data?.premiumActive) }, request });
+  const matches = useGetMatches({ query: { queryKey: getGetMatchesQueryKey(), retry: false, enabled: !!current.data }, request });
   const match = matches.data?.matches.find((item) => item.id === matchId);
-  const messages = useGetMatchMessages(matchId, { query: { queryKey: getGetMatchMessagesQueryKey(matchId), retry: false, enabled: !!match && (!!plan.data?.isWoman || !!plan.data?.premiumActive) }, request });
+  const messages = useGetMatchMessages(matchId, { query: { queryKey: getGetMatchMessagesQueryKey(matchId), retry: false, enabled: !!match }, request });
   const send = useSendMatchMessage({ request });
   const markRead = useMarkMatchRead({ request });
   const reportMutation = useSubmitReport({ request });
@@ -144,7 +193,7 @@ export function ChatPage() {
   const markReadRef = useRef(markRead.mutate);
   markReadRef.current = markRead.mutate;
   useEffect(() => {
-    if (!matchId || !match || !plan.data || (!plan.data.isWoman && !plan.data.premiumActive)) return;
+    if (!matchId || !match) return;
     markReadRef.current({ matchId }, { onSuccess: () => void client.invalidateQueries({ queryKey: getGetMatchesQueryKey() }) });
   }, [client, matchId, match?.id]);
   useEffect(() => {
@@ -171,11 +220,12 @@ export function ChatPage() {
       socket.off('match:updated', onMatchUpdated);
       socket.disconnect();
     };
-  }, [client, current.data?.id, matchId, match?.id, plan.data?.isWoman, plan.data?.premiumActive]);
+  }, [client, current.data?.id, matchId, match?.id]);
   if (current.isLoading || matches.isLoading || messages.isLoading || plan.isLoading) return <LoadingState />;
-  if (plan.data && !plan.data.isWoman && !plan.data.premiumActive) return <section className="community-page"><div className="discover-state"><div className="state-icon"><Sparkles/></div><h2>Premium unlocks messaging.</h2><p>Your mutual match is saved. An active weekly Premium plan is needed for men to open full profiles and chat. Payment covers app features only, not a date or service.</p><Link href="/plan" className="btn btn-primary">See weekly plans <ArrowRight size={16}/></Link></div></section>;
+  if (plan.isError) return <section className="community-page"><ErrorState title="Messaging access is unavailable" retry={() => void plan.refetch()} /></section>;
   if (matches.isError || messages.isError || !match) return <section className="community-page"><ErrorState title="Conversation unavailable" retry={() => void messages.refetch()} /></section>;
   const matchedProfile = match.profile;
+  const canSend = !!plan.data && (plan.data.isWoman || plan.data.premiumActive);
   const items = messages.data?.messages ?? [];
   async function submit(e: FormEvent) {
     e.preventDefault(); const text = body.trim(); if (!text || send.isPending) return;
@@ -205,7 +255,8 @@ export function ChatPage() {
       {safetyMessage && <p className="safety-feedback" role="status">{safetyMessage}</p>}
       <div className="chat-messages" aria-live="polite">{items.length === 0 ? <div className="discover-state" style={{ minHeight: 170, boxShadow: 'none', border: 0, background: 'transparent' }}><h2>Start with a real hello.</h2><p>A thoughtful first message goes a long way.</p></div> : items.map((item) => <div key={item.id} className={`chat-bubble ${item.senderId === current.data?.id ? 'mine' : ''}`} data-testid={`message-${item.id}`}>{item.body}<span className="chat-time">{new Date(item.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span></div>)}</div>
       {error && <div className="inline-error" style={{ margin: '0 14px' }} role="alert"><CircleAlert size={15} />{error}</div>}
-      <form className="chat-compose" onSubmit={submit}><input value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder="Write a thoughtful message…" aria-label="Message" data-testid="input-chat-message" /><button className="btn btn-primary" disabled={!body.trim() || send.isPending} type="submit" data-testid="button-send-message">{send.isPending ? <LoaderCircle className="spin" size={16} /> : <Send size={16} />}<span className="desktop-send-label">Send</span></button></form>
+       {canSend ? <form className="chat-compose" onSubmit={submit}><input value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder="Write a thoughtful message…" aria-label="Message" data-testid="input-chat-message" /><button className="btn btn-primary" disabled={!body.trim() || send.isPending} type="submit" data-testid="button-send-message">{send.isPending ? <LoaderCircle className="spin" size={16} /> : <Send size={16} />}<span className="desktop-send-label">Send</span></button></form> :
+         <div className="chat-premium-prompt"><div><strong>Premium is needed to reply.</strong><p>You can read incoming messages. Subscribe to send or reply.</p></div><Link href="/plan" className="btn btn-primary">See Premium plans <ArrowRight size={15} /></Link></div>}
     </div>
   </section>;
 }
