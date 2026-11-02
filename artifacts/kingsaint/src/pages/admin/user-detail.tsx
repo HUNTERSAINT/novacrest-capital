@@ -55,7 +55,7 @@ export default function AdminUserDetail() {
   });
 
   // useGetAdminUser returns AdminUserDetail: { user: User, investments: Investment[], transactions: Transaction[] }
-  const { data: detail, isLoading } = useGetAdminUser(userId, {
+  const { data: detail, isLoading, error } = useGetAdminUser(userId, {
     query: { enabled: !!userId }
   });
 
@@ -92,6 +92,21 @@ export default function AdminUserDetail() {
       onError: (err) => toast({ variant: "destructive", title: "Error", description: err.message }),
     },
   });
+
+  if (error && !isLoading) {
+    return (
+      <div className="space-y-4 max-w-4xl">
+        <Link href="/admin/users"><Button variant="ghost" size="sm" className="text-muted-foreground"><ArrowLeft className="w-4 h-4 mr-1" /> Back to members</Button></Link>
+        <Card className="bg-card border-red-500/20 rounded-sm">
+          <CardContent className="p-6 space-y-2">
+            <h2 className="text-lg font-serif text-white">Could not load this member</h2>
+            <p className="text-sm text-muted-foreground">{error instanceof Error ? error.message : "The member details request failed. Please try again."}</p>
+            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId] })}>Try again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading || !detail) {
     return (
