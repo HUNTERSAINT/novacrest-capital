@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, investmentsTable, plansTable, usersTable, transactionsTable, referralsTable } from "@workspace/db";
 import { eq, and, gte, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth.js";
-import { createNotification } from "../lib/notifications.js";
+import { createNotification, notifyAdmins } from "../lib/notifications.js";
 import {
   GetInvestmentsResponse,
   GetInvestmentResponse,
@@ -121,6 +121,12 @@ router.post("/investments", requireAuth, async (req, res): Promise<void> => {
   }
 
   const { investment, user } = purchase;
+
+  await notifyAdmins({
+    type: "admin_investment_started",
+    title: "New Investment Started",
+    message: `${user.fullName} (${user.email}) invested ${amount.toLocaleString()} in ${plan.name}. Investment #${investment.id}; maturity: ${endDate}.`,
+  });
 
   // ── Multi-level referral bonuses ─────────────────────────────────────────
   try {
