@@ -26,6 +26,15 @@ const money = (n: number) => new Intl.NumberFormat("en-US", {
   style: "currency", currency: "USD", maximumFractionDigits: 2,
 }).format(n);
 
+function toLocalDateTimeInput(value: string): string {
+  // Older investments store a date only; retain midnight as their editable time.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return `${value}T00:00`;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function AdminInvestments() {
   const { token } = useAuth();
   const { toast } = useToast();
@@ -57,7 +66,12 @@ export default function AdminInvestments() {
   }, [data, selectedPlan]);
 
   const saveMaturity = async (row: InvestmentRow) => {
-    const endDate = dates[row.id] ?? row.endDate;
+    const localDateTime = dates[row.id] ?? toLocalDateTimeInput(row.endDate);
+    if (!localDateTime || Number.isNaN(new Date(localDateTime).getTime())) {
+      toast({ variant: "destructive", title: "Invalid maturity date", description: "Choose a valid date and time before saving." });
+      return;
+    }
+    const endDate = new Date(localDateTime).toISOString();
     setSavingId(row.id);
     try {
       const response = await fetch(`/api/admin/investments/${row.id}/maturity`, {
@@ -67,7 +81,7 @@ export default function AdminInvestments() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Could not update maturity date");
-      toast({ title: "Maturity date updated", description: `Investment #${row.id} now matures on ${result.endDate}.` });
+      toast({ title: "Maturity date and time updated", description: `Investment #${row.id} now matures on ${new Date(result.endDate).toLocaleString()}.` });
       await load();
     } catch (error) {
       toast({ variant: "destructive", title: "Update failed", description: error instanceof Error ? error.message : "Please try again." });
@@ -79,7 +93,7 @@ export default function AdminInvestments() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-serif text-white">Investment Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">Review platform investment volume, plan participation and maturity dates.</p>
+          <p className="text-sm text-muted-foreground mt-1">Review platform investment volume, plan participation and exact maturity dates and times.</p>
         </div>
         <Button variant="outline" onClick={() => void load()} disabled={loading} className="border-white/10 text-white">
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
@@ -128,12 +142,12 @@ export default function AdminInvestments() {
       <section className="space-y-3">
         <h2 className="text-xl font-serif text-white">{selectedPlan === null ? "All investors" : `Investors in ${data?.plans.find(p => p.planId === selectedPlan)?.planName ?? "selected plan"}`}</h2>
         <div className="overflow-x-auto rounded-sm border border-white/10 bg-card">
-          <table className="w-full min-w-[850px] text-sm">
+          <table className="w-full min-w-[1050px] text-sm">
             <thead className="bg-white/5 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="text-left p-3">Investor</th><th className="text-left p-3">Plan</th>
                 <th className="text-right p-3">Amount</th><th className="text-left p-3">Started</th>
-                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity</th>
+                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity date & time</th>
               </tr>
             </thead>
             <tbody>
@@ -143,16 +157,16 @@ export default function AdminInvestments() {
                   <td className="p-3 text-white">{row.planName}</td>
                   <td className="p-3 text-right text-white">{money(row.amount)}</td>
                   <td className="p-3 text-muted-foreground">{row.startDate}</td>
-                  <td className="p-3 text-white">{row.endDate}</td>
+                  <td className="p-3 text-white">{row.endDate.length > 10 ? new Date(row.endDate).toLocaleString() : row.endDate}</td>
                   <td className="p-3"><Badge variant="outline" className="border-white/10 text-white capitalize">{row.status}</Badge></td>
                   <td className="p-3">
                     {row.status === "active" ? (
                       <div className="flex items-center gap-2">
-                        <Input type="date" value={dates[row.id] ?? row.endDate}
+                        <Input type="datetime-local" step="60" value={dates[row.id] ?? toLocalDateTimeInput(row.endDate)}
                           onChange={e => setDates(prev => ({ ...prev, [row.id]: e.target.value }))}
-                          className="w-36 bg-background border-white/10 text-white" />
+                          className="w-56 bg-background border-white/10 text-white" />
                         <Button size="icon" onClick={() => void saveMaturity(row)} disabled={savingId === row.id}
-                          aria-label="Save maturity date" className="shrink-0">
+                          aria-label="Save maturity date and time" className="shrink-0">
                           {savingId === row.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         </Button>
                       </div>
@@ -164,7 +178,7 @@ export default function AdminInvestments() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground flex items-center gap-2"><CalendarClock className="w-3.5 h-3.5" /> Only active investments can be rescheduled. The automatic payout process uses the updated maturity date.</p>
+        <p className="text-xs text-muted-foreground flex items-center gap-2"><CalendarClock className="w-3.5 h-3.5" /> Choose the exact date and time. Times are interpreted in your device's local timezone, then stored consistently. Payouts run automatically once that time has passed.</p>
       </section>
     </div>
   );
