@@ -1,4 +1,4 @@
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   db,
   investmentsTable,
@@ -9,23 +9,25 @@ import { logger } from "./logger.js";
 import { notifyAdmins } from "./notifications.js";
 
 /**
- * Settle investments whose end date has arrived.
- *
- * Each payout is committed atomically and the active -> completed transition
- * is conditional, so repeated scheduler runs (or multiple API replicas) cannot
- * credit the same investment more than once.
+ * Settle investments whose configured maturity date/time has arrived.
+ * Legacy rows containing YYYY-MM-DD keep their previous date-based behavior.
  */
 export async function settleMaturedInvestments(): Promise<void> {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
 
-  const matured = await db
-    .select({ id: investmentsTable.id })
+  // endDate is text for backwards compatibility. Fetch active rows and compare
+  // date-only values as dates, while ISO timestamps are compared as instants.
+  const active = await db
+    .select({ id: investmentsTable.id, endDate: investmentsTable.endDate })
     .from(investmentsTable)
-    .where(and(
-      eq(investmentsTable.status, "active"),
-      lte(investmentsTable.endDate, today),
-    ))
-    .limit(100);
+    .where(eq(investmentsTable.status, "active"));
+
+  const matured = active.filter((row) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(row.endDate)) return row.endDate <= today;
+    const maturityTime = Date.parse(row.endDate);
+    return Number.isFinite(maturityTime) && maturityTime <= now.getTime();
+  });
 
   for (const candidate of matured) {
     try {
@@ -37,9 +39,11 @@ export async function settleMaturedInvestments(): Promise<void> {
           .where(eq(investmentsTable.id, candidate.id))
           .limit(1);
 
-        if (!investment || investment.status !== "active" || investment.endDate > today) {
-          return;
-        }
+        if (!investment || investment.status !== "active") return;
+        const isMatured = /^\d{4}-\d{2}-\d{2}$/.test(investment.endDate)
+          ? investment.endDate <= today
+          : Number.isFinite(Date.parse(investment.endDate)) && Date.parse(investment.endDate) <= now.getTime();
+        if (!isMatured) return;
 
         const [owner] = await tx
           .select({ id: usersTable.id })
@@ -53,27 +57,21 @@ export async function settleMaturedInvestments(): Promise<void> {
           return;
         }
 
-        const profit = Math.round(
-          investment.amount * investment.roiPercent
-        ) / 100;
+        const profit = Math.round(investment.amount * investment.roiPercent) / 100;
         const principal = Math.round(investment.amount * 100) / 100;
 
-        // Claim the investment before issuing credits. This conditional update
-        // is the idempotency guard when more than one worker runs at once.
         const [claimed] = await tx
           .update(investmentsTable)
           .set({ status: "completed", profitEarned: profit })
           .where(and(
             eq(investmentsTable.id, investment.id),
             eq(investmentsTable.status, "active"),
-            lte(investmentsTable.endDate, today),
+            eq(investmentsTable.endDate, investment.endDate),
           ))
           .returning({ id: investmentsTable.id });
 
         if (!claimed) return;
 
-        // Two distinct balance credits and two distinct ledger entries:
-        // profit is never merged with the returned principal.
         if (profit > 0) {
           await tx
             .update(usersTable)
