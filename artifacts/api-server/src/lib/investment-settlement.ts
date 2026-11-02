@@ -6,6 +6,7 @@ import {
   usersTable,
 } from "@workspace/db";
 import { logger } from "./logger.js";
+import { notifyAdmins } from "./notifications.js";
 
 /**
  * Settle investments whose end date has arrived.
@@ -28,6 +29,7 @@ export async function settleMaturedInvestments(): Promise<void> {
 
   for (const candidate of matured) {
     try {
+      let alert: { userId: number; planName: string; investmentId: number; principal: number; profit: number } | null = null;
       await db.transaction(async (tx) => {
         const [investment] = await tx
           .select()
@@ -105,6 +107,14 @@ export async function settleMaturedInvestments(): Promise<void> {
           notes: `Return of original investment principal for ${investment.planName} (investment #${investment.id})`,
         });
 
+        alert = {
+          userId: investment.userId,
+          planName: investment.planName,
+          investmentId: investment.id,
+          principal,
+          profit,
+        };
+
         logger.info({
           investmentId: investment.id,
           userId: investment.userId,
@@ -112,6 +122,14 @@ export async function settleMaturedInvestments(): Promise<void> {
           profitCredited: profit,
         }, "Matured investment settled");
       });
+
+      if (alert) {
+        await notifyAdmins({
+          type: "admin_investment_credited",
+          title: "Investment Payout Credited",
+          message: `Investment #${alert.investmentId} (${alert.planName}) for user #${alert.userId} matured. Profit credited: ${alert.profit.toFixed(2)}; principal returned separately: ${alert.principal.toFixed(2)}.`,
+        });
+      }
     } catch (error) {
       logger.error({ err: error, investmentId: candidate.id },
         "Failed to settle matured investment; it will be retried on the next run");
