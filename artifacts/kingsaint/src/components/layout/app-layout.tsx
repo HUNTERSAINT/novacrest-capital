@@ -83,6 +83,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/admin/users", label: "Members", icon: Users },
     { href: "/admin/transactions", label: "Approvals", icon: CreditCard },
     { href: "/admin/plans", label: "Manage Plans", icon: Wallet },
+    { href: "/admin/investments", label: "Investments & Investors", icon: TrendingUp },
     { href: "/admin/wallets", label: "Payment Wallets", icon: QrCode },
     { href: "/admin/kyc", label: "KYC Review", icon: ShieldCheck },
     { href: "/admin/signals", label: "Signals", icon: Zap },
