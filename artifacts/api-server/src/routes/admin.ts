@@ -4,6 +4,7 @@ import { eq, count, sum, and, ilike, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middlewares/auth.js";
 import { createSession } from "../lib/sessions.js";
+import { notifyAdmins } from "../lib/notifications.js";
 import {
   GetAdminStatsResponse,
   GetAdminUsersQueryParams,
@@ -462,7 +463,13 @@ router.post("/admin/credit-user", requireAdmin, async (req, res): Promise<void> 
     notes,
   });
 
-  res.json(CreditUserResponse.parse({ message: `Successfully credited $${amount} to user` }));
+  await notifyAdmins({
+    type: "admin_user_credited",
+    title: "User Balance Credited",
+    message: `Admin credit: user ${user.fullName} (${user.email}) received ${amount.toFixed(2)} as ${type}. ${notes ?? ""}`,
+  });
+
+  res.json(CreditUserResponse.parse({ message: `Successfully credited ${amount} to user` }));
 });
 
 // ── Deduct User ──────────────────────────────────────────────────────────────
