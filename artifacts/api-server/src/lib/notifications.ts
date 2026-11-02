@@ -61,7 +61,37 @@ async function sendExpoPushMessages(
   }
 }
 
-/** Create the same notification for every admin user and send push notifications. Non-fatal. */
+/** Email all admin accounts through Resend when email delivery is configured. */
+async function emailAdmins(admins: { email: string }[], subject: string, message: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !from || admins.length === 0) return;
+
+  const htmlMessage = message.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/\\n/g, "<br>");
+  await Promise.all(admins.map(async ({ email }) => {
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [email],
+          subject: `NovaCrest: ${subject}`,
+          text: message,
+          html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>NovaCrest Admin Alert</h2><p>${htmlMessage}</p></div>`,
+        }),
+      });
+    } catch {
+      // Email delivery is best-effort; in-app/push notifications remain available.
+    }
+  }));
+}
+
+/** Create the same notification for every admin user and send push/email notifications. Non-fatal. */
 export async function notifyAdmins({
   type,
   title,
@@ -73,16 +103,17 @@ export async function notifyAdmins({
 }) {
   try {
     const admins = await db
-      .select({ id: usersTable.id })
+      .select({ id: usersTable.id, email: usersTable.email })
       .from(usersTable)
       .where(eq(usersTable.role, "admin"));
 
     if (admins.length === 0) return;
 
-    // 1. Insert in-app notifications
+    // 1. Insert in-app notifications and send email alerts.
     await db.insert(notificationsTable).values(
       admins.map((a) => ({ userId: a.id, type, title, message })),
     );
+    await emailAdmins(admins, title, message);
 
     // 2. Fetch push tokens for all admin users
     const adminIds = admins.map((a) => a.id);
