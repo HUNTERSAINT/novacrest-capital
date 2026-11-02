@@ -123,11 +123,12 @@ export async function settleMaturedInvestments(): Promise<void> {
         }, "Matured investment settled");
       });
 
-      if (alert) {
+      const completedAlert = alert as { userId: number; planName: string; investmentId: number; principal: number; profit: number } | null;
+      if (completedAlert) {
         await notifyAdmins({
           type: "admin_investment_credited",
           title: "Investment Payout Credited",
-          message: `Investment #${alert.investmentId} (${alert.planName}) for user #${alert.userId} matured. Profit credited: ${alert.profit.toFixed(2)}; principal returned separately: ${alert.principal.toFixed(2)}.`,
+          message: `Investment #${completedAlert.investmentId} (${completedAlert.planName}) for user #${completedAlert.userId} matured. Profit credited: ${completedAlert.profit.toFixed(2)}; principal returned separately: ${completedAlert.principal.toFixed(2)}.`,
         });
       }
     } catch (error) {
