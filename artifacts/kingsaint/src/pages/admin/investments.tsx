@@ -39,6 +39,7 @@ export default function AdminInvestments() {
     setLoading(true);
     try {
       const response = await fetch("/api/admin/investments", {
+        cache: "no-store",
         headers: { Authorization: `Bearer ${token ?? ""}` },
       });
       if (!response.ok) throw new Error((await response.json()).error ?? "Could not load investments");
