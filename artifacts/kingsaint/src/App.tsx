@@ -99,6 +99,7 @@ function Router() {
       <Route path="/admin/users/:id" component={() => <ProtectedRoute adminOnly component={AdminUserDetail} />} />
       <Route path="/admin/transactions" component={() => <ProtectedRoute adminOnly component={AdminTransactions} />} />
       <Route path="/admin/plans" component={() => <ProtectedRoute adminOnly component={AdminPlans} />} />
+      <Route path="/admin/investments" component={() => <ProtectedRoute adminOnly component={AdminInvestments} />} />
       <Route path="/admin/wallets" component={() => <ProtectedRoute adminOnly component={AdminWallets} />} />
       <Route path="/admin/kyc" component={() => <ProtectedRoute adminOnly component={AdminKyc} />} />
       <Route path="/admin/signals" component={() => <ProtectedRoute adminOnly component={AdminSignals} />} />
