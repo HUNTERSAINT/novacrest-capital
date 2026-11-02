@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { settleMaturedInvestments } from "./lib/investment-settlement";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,16 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Run once at startup, then every minute. The settlement operation is
+  // transactional and idempotent, so overlapping runs/replicas are safe.
+  void settleMaturedInvestments().catch((error) => {
+    logger.error({ err: error }, "Initial investment settlement run failed");
+  });
+
+  setInterval(() => {
+    void settleMaturedInvestments().catch((error) => {
+      logger.error({ err: error }, "Scheduled investment settlement run failed");
+    });
+  }, 60_000);
 });
