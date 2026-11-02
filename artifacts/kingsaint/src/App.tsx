@@ -34,6 +34,7 @@ import AdminKyc from '@/pages/admin/kyc';
 import AdminSignals from '@/pages/admin/signals';
 import AdminCopyTrading from '@/pages/admin/copy-trading';
 import AdminChat from '@/pages/admin/chat';
+import AdminInvestments from '@/pages/admin/investments';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
