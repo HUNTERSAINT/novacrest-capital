@@ -360,7 +360,14 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, {
+    ...init,
+    method,
+    headers,
+    // Admin and member data must always be freshly fetched. A 304 response
+    // has no JSON body and otherwise leaves React Query pages blank.
+    cache: init.cache ?? (method === "GET" ? "no-store" : undefined),
+  });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
