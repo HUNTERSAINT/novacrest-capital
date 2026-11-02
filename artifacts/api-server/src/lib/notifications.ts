@@ -61,15 +61,20 @@ async function sendExpoPushMessages(
   }
 }
 
-/** Email all admin accounts through Resend when email delivery is configured. */
+/** Email all admin accounts and the configured primary admin inbox through Resend. */
 async function emailAdmins(admins: { email: string }[], subject: string, message: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !from || admins.length === 0) return;
+  const primaryAdminEmail = process.env.ADMIN_NOTIFICATION_EMAIL?.trim().toLowerCase();
+  const recipients = Array.from(new Set([
+    ...admins.map((admin) => admin.email.trim().toLowerCase()),
+    ...(primaryAdminEmail ? [primaryAdminEmail] : []),
+  ].filter(Boolean)));
+  if (!apiKey || !from || recipients.length === 0) return;
 
   const htmlMessage = message.replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/\\n/g, "<br>");
-  await Promise.all(admins.map(async ({ email }) => {
+  await Promise.all(recipients.map(async (email) => {
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
