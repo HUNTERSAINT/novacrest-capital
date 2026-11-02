@@ -22,6 +22,9 @@ const typeConfig: Record<string, { emoji: string; adminLink?: string }> = {
   profit_credited:     { emoji: "💰" },
   // Admin-facing
   admin_chat_message:       { emoji: "💬", adminLink: "/admin/chat" },
+  admin_investment_started: { emoji: "📈", adminLink: "/admin/investments" },
+  admin_investment_credited:{ emoji: "💰", adminLink: "/admin/investments" },
+  admin_user_credited:      { emoji: "💳", adminLink: "/admin/investments" },
   admin_kyc_submitted:      { emoji: "🪪", adminLink: "/admin/kyc" },
   admin_deposit_request:    { emoji: "📥", adminLink: "/admin/transactions" },
   admin_withdrawal_request: { emoji: "📤", adminLink: "/admin/transactions" },
