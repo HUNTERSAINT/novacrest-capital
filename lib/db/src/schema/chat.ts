@@ -20,3 +20,11 @@ export const chatMessagesTable = pgTable("chat_messages", {
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+
+// Resend webhook event IDs make inbound email processing idempotent across retries.
+export const resendInboundEventsTable = pgTable("resend_inbound_events", {
+  id: serial("id").primaryKey(),
+  eventId: text("event_id").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
