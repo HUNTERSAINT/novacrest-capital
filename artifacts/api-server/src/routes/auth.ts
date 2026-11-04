@@ -232,7 +232,7 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user) {
-    res.json({ message: genericMessage });
+    res.status(404).json({ error: "Email not linked to an account." });
     return;
   }
 
