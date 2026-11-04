@@ -18,6 +18,7 @@ import storageRouter from "./storage";
 import chatRouter from "./chat";
 import emailRouter from "./email";
 import pushTokensRouter from "./push-tokens";
+import inboundEmailRouter from "./inbound-email";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(storageRouter);
 router.use(chatRouter);
 router.use(emailRouter);
 router.use(pushTokensRouter);
+router.use(inboundEmailRouter);
 
 export default router;
