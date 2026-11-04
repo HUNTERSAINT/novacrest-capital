@@ -57,7 +57,6 @@ router.post("/admin/email/send", requireAdmin, async (req, res): Promise<void> =
   }).from(usersTable).where(ne(usersTable.role, "admin"));
 
   if (parsed.data.audience === "active") {
-    recipients = recipients.filter((user) => user.email && user.id && user);
     const activeUsers = await db.select({ id: usersTable.id })
       .from(usersTable)
       .where(eq(usersTable.status, "active"));
