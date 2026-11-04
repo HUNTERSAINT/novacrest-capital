@@ -9,6 +9,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 // Pages
 import Home from '@/pages/home';
 import Login from '@/pages/login';
+import PasswordRecovery from '@/pages/password-recovery';
 import Register from '@/pages/register';
 import Dashboard from '@/pages/dashboard';
 import Plans from '@/pages/plans';
@@ -76,6 +77,8 @@ function Router() {
       {/* Public Routes */}
       <Route path="/" component={() => <PublicRoute component={Home} />} />
       <Route path="/login" component={() => <PublicRoute component={Login} />} />
+      <Route path="/forgot-password" component={() => <PublicRoute component={PasswordRecovery} />} />
+      <Route path="/reset-password" component={() => <PublicRoute component={PasswordRecovery} />} />
       <Route path="/register" component={() => <PublicRoute component={Register} />} />
       <Route path="/plans" component={() => <PublicRoute component={Plans} />} />
       <Route path="/faq" component={() => <PublicRoute component={FAQ} />} />
