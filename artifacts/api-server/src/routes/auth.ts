@@ -225,7 +225,7 @@ function verifyPasswordResetToken(token: string, passwordHash: string): number |
 router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   const email = typeof req.body?.email === "string" ? normalizeEmail(req.body.email) : "";
   const genericMessage = "If an account exists for that email, a password reset link has been sent.";
-  if (!email || email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     res.json({ message: genericMessage });
     return;
   }
@@ -245,9 +245,9 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   }
 
   const token = createPasswordResetToken(user.id, user.passwordHash);
-  const baseUrl = (process.env.FRONTEND_URL || process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\\/$/, "");
+  const baseUrl = (process.env.FRONTEND_URL || process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
-  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#172033;line-height:1.6"><h2 style="color:#0d9488">NovaCrest Capital</h2><h3>Reset your password</h3><p>Hello ${String(user.fullName).replace(/[&<>\"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",\"":"&quot;"}[c] || c))},</p><p>We received a request to reset your NovaCrest account password. This link expires in 30 minutes and can only be used once.</p><p><a href="${resetUrl}" style="display:inline-block;background:#0d9488;color:white;padding:13px 22px;text-decoration:none;border-radius:6px">Reset password</a></p><p>If you did not request this, you can safely ignore this email. Your password will not change.</p><p style="font-size:12px;color:#64748b">For your security, do not share this link with anyone.</p></div>`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#172033;line-height:1.6"><h2 style="color:#0d9488">NovaCrest Capital</h2><h3>Reset your password</h3><p>Hello ${String(user.fullName).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")},</p><p>We received a request to reset your NovaCrest account password. This link expires in 30 minutes and can only be used once.</p><p><a href="${resetUrl}" style="display:inline-block;background:#0d9488;color:white;padding:13px 22px;text-decoration:none;border-radius:6px">Reset password</a></p><p>If you did not request this, you can safely ignore this email. Your password will not change.</p><p style="font-size:12px;color:#64748b">For your security, do not share this link with anyone.</p></div>`;
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
