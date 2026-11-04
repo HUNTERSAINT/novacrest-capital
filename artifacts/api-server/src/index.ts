@@ -25,7 +25,7 @@ async function bootstrapAdminFromEnvironment(): Promise<void> {
   if (!emailValue || !password) return;
 
   const email = normalizeEmail(emailValue);
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 16 || password.length > 128) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 16 || password.length > 128) {
     throw new Error("NOVACREST admin bootstrap credentials are invalid; use a valid email and a 16-128 character password.");
   }
 
