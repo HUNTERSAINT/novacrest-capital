@@ -301,6 +301,7 @@ export default function AdminChat() {
   const qc = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+  const [emailNotice, setEmailNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   const { data: sessionsData } = useQuery({
     queryKey: ["admin-chat-sessions"],
@@ -317,10 +318,15 @@ export default function AdminChat() {
 
   const replyMutation = useMutation({
     mutationFn: ({ id, message }: { id: number; message: string }) => sendReply(id, message),
-    onSuccess: () => {
+    onMutate: () => setEmailNotice(null),
+    onSuccess: (result: any) => {
       qc.invalidateQueries({ queryKey: ["admin-chat-messages", activeSessionId] });
       qc.invalidateQueries({ queryKey: ["admin-chat-sessions"] });
+      setEmailNotice(result?.emailSent
+        ? { ok: true, text: "Reply sent to the member's email address." }
+        : { ok: false, text: result?.emailError ?? "Reply saved, but email delivery was not confirmed." });
     },
+    onError: () => setEmailNotice({ ok: false, text: "Could not send the chat reply. Please try again." }),
   });
 
   const closeMutation = useMutation({
@@ -371,6 +377,15 @@ export default function AdminChat() {
           <Circle className="w-2 h-2 fill-green-400 text-green-400" /> Live updates
         </div>
       </div>
+
+      {emailNotice && (
+        <div role="status" className={`rounded-sm border px-3 py-2 text-xs ${emailNotice.ok
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+          : "border-amber-500/20 bg-amber-500/10 text-amber-200"
+        }`}>
+          {emailNotice.text}
+        </div>
+      )}
 
       {/* Chat container — fixed height, works within the existing admin layout */}
       <div className="flex border border-white/5 rounded-sm overflow-hidden bg-card" style={{ height: "calc(100vh - 260px)", minHeight: "480px" }}>
