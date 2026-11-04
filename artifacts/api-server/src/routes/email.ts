@@ -91,6 +91,7 @@ router.post("/admin/email/send", requireAdmin, async (req, res): Promise<void> =
         },
         body: JSON.stringify({
           from,
+          reply_to: process.env.NOVACREST_SUPPORT_REPLY_TO || "support@reply.novacrestfi.com",
           to: [recipient.email],
           subject: parsed.data.subject,
           text: `Hello ${recipient.fullName || "there"},\n\n${parsed.data.message}\n\nNovaCrest Team`,
