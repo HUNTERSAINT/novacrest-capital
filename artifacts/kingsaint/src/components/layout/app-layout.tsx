@@ -22,6 +22,7 @@ import {
   TrendingUp,
   ShieldCheck,
   MessageSquare,
+  Mail,
   UserCheck,
 } from "lucide-react";
 import { useLogout } from "@workspace/api-client-react";
@@ -89,6 +90,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/admin/signals", label: "Signals", icon: Zap },
     { href: "/admin/copy-trading", label: "Copy Trading", icon: Copy },
     { href: "/admin/chat", label: "Live Chat", icon: MessageSquare },
+    { href: "/admin/email", label: "Mail Centre", icon: Mail },
   ];
 
   const links = isAdmin ? adminLinks : userLinks;
