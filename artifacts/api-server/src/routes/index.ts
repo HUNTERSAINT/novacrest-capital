@@ -16,6 +16,7 @@ import signalsRouter from "./signals";
 import copyTradingRouter from "./copy-trading";
 import storageRouter from "./storage";
 import chatRouter from "./chat";
+import emailRouter from "./email";
 import pushTokensRouter from "./push-tokens";
 
 const router: IRouter = Router();
@@ -37,6 +38,7 @@ router.use(signalsRouter);
 router.use(copyTradingRouter);
 router.use(storageRouter);
 router.use(chatRouter);
+router.use(emailRouter);
 router.use(pushTokensRouter);
 
 export default router;
