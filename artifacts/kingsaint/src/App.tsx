@@ -35,6 +35,7 @@ import AdminKyc from '@/pages/admin/kyc';
 import AdminSignals from '@/pages/admin/signals';
 import AdminCopyTrading from '@/pages/admin/copy-trading';
 import AdminChat from '@/pages/admin/chat';
+import AdminEmail from '@/pages/admin/email';
 import AdminInvestments from '@/pages/admin/investments';
 import NotFound from '@/pages/not-found';
 
@@ -109,6 +110,7 @@ function Router() {
       <Route path="/admin/signals" component={() => <ProtectedRoute adminOnly component={AdminSignals} />} />
       <Route path="/admin/copy-trading" component={() => <ProtectedRoute adminOnly component={AdminCopyTrading} />} />
       <Route path="/admin/chat" component={() => <ProtectedRoute adminOnly component={AdminChat} />} />
+      <Route path="/admin/email" component={() => <ProtectedRoute adminOnly component={AdminEmail} />} />
 
       <Route component={() => <PublicRoute component={NotFound} />} />
     </Switch>
