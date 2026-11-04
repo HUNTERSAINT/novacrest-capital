@@ -198,8 +198,7 @@ router.post("/admin/chat/sessions/:id/reply", requireAdmin, async (req, res): Pr
     text: `Hello ${member.fullName || "there"},\n\nAn administrator has replied to your NovaCrest support chat:\n\n${message}\n\nYou can continue the conversation by signing in to your NovaCrest account and opening Support Chat.\n\nNovaCrest Support Team`,
     html: `<!doctype html><html><body style="margin:0;padding:24px;background:#f4f6f8;font-family:Arial,sans-serif;color:#17202a"><div style="max-width:600px;margin:0 auto;background:#fff;padding:28px;border-radius:12px"><h2 style="margin-top:0;color:#123b35">NovaCrest Support</h2><p>Hello ${safeName},</p><p>An administrator has replied to your support conversation:</p><div style="padding:18px;background:#f4f6f8;border-left:4px solid #168477;border-radius:6px;line-height:1.6;white-space:normal">${safeMessage}</div><p style="line-height:1.6">You can continue the conversation by signing in to your NovaCrest account and opening Support Chat.</p><p style="margin-bottom:0">Regards,<br><strong>NovaCrest Support Team</strong></p></div></body></html>`,
   };
-  const replyTo = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
-  if (replyTo) emailPayload.reply_to = replyTo;
+  emailPayload.reply_to = process.env.NOVACREST_SUPPORT_REPLY_TO || "support@reply.novacrestfi.com";
 
   try {
     const resendResponse = await fetch("https://api.resend.com/emails", {
