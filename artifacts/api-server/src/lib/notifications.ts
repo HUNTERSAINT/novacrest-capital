@@ -109,6 +109,34 @@ export async function notifyUserPush(userId: number, title: string, body: string
   }
 }
 
+
+/** Send an investment-change email to a user through Resend. Best-effort. */
+export async function notifyUserEmail(userId: number, subject: string, message: string) {
+  try {
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM_EMAIL;
+    if (!apiKey || !from) return;
+    const [user] = await db.select({ email: usersTable.email, fullName: usersTable.fullName })
+      .from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+    if (!user?.email) return;
+    const safeMessage = message.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [user.email],
+        subject: `NovaCrest: ${subject}`,
+        text: `Hello ${user.fullName ?? "there"},\n\n${message}\n\nNovaCrest Support`,
+        html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><p>Hello ${user.fullName ?? "there"},</p><p>${safeMessage}</p><p>NovaCrest Support</p></div>`,
+      }),
+    });
+  } catch {
+    // Non-critical; in-app and push notifications remain available.
+  }
+}
+
 /** Create the same notification for every admin user and send push/email notifications. Non-fatal. */
 export async function notifyAdmins({
   type,

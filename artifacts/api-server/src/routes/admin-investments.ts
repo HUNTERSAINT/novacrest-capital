@@ -4,7 +4,7 @@ import { db, investmentsTable, usersTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middlewares/auth.js";
-import { createNotification, notifyAdmins, notifyUserPush } from "../lib/notifications.js";
+import { createNotification, notifyAdmins, notifyUserPush, notifyUserEmail } from "../lib/notifications.js";
 
 const router = Router();
 
@@ -105,20 +105,12 @@ router.patch("/admin/investments/:id/maturity", requireAdmin, async (req, res): 
 });
 
 
-const SlowSignalBody = z.object({ reason: z.string().trim().min(3).max(500) });
-
 router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res): Promise<void> => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id <= 0) {
     res.status(400).json({ error: "Invalid investment ID" });
     return;
   }
-  const parsed = SlowSignalBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Please provide a reason between 3 and 500 characters." });
-    return;
-  }
-
   const [investment] = await db.select().from(investmentsTable)
     .where(eq(investmentsTable.id, id)).limit(1);
   if (!investment) {
@@ -160,7 +152,7 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
       slowSignalOriginalEndDate: originalEndDate,
       slowSignalAppliedAt: appliedAt,
       slowSignalAdminId: req.userId!,
-      slowSignalReason: parsed.data.reason,
+      slowSignalReason: null,
     })
     .where(and(
       eq(investmentsTable.id, id),
@@ -182,7 +174,7 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
 
   const originalDisplay = isDateOnly ? originalEndDate : new Date(originalEndDate).toISOString();
   const newDisplay = isDateOnly ? newEndDate : new Date(newEndDate).toISOString();
-  const message = `Slow Signal Mode was applied to your ${updated.planName} investment #${updated.id}. Maturity changed from ${originalDisplay} UTC to ${newDisplay} UTC (+${delayDays} days). Reason: ${parsed.data.reason}`;
+  const message = `Slow Signal Mode was applied to your ${updated.planName} investment #${updated.id}. Maturity changed from ${originalDisplay} UTC to ${newDisplay} UTC (+${delayDays} days). Please contact our support team to understand why this adjustment was made.`;
 
   await createNotification({
     userId: updated.userId,
@@ -191,10 +183,11 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
     message,
   });
   await notifyUserPush(updated.userId, "Investment maturity updated", message);
+  await notifyUserEmail(updated.userId, "Investment maturity updated", message);
   await notifyAdmins({
     type: "admin_slow_signal_applied",
     title: "Slow Signal Mode applied",
-    message: `Admin #${req.userId} applied Slow Signal Mode to investment #${updated.id} (user #${updated.userId}); ${delayDays} days added. Reason: ${parsed.data.reason}. New maturity: ${newEndDate}.`,
+    message: `Admin #${req.userId} applied Slow Signal Mode to investment #${updated.id} (user #${updated.userId}); ${delayDays} days added. New maturity: ${newEndDate}.`,
   });
 
   res.json({
