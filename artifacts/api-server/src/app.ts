@@ -90,10 +90,24 @@ if (process.env.NODE_ENV === "production") {
     });
   });
 
-  app.use(express.static(frontendDist));
+  // Always revalidate the SPA entrypoint and service worker so installed/mobile
+  // clients don't keep an old bundle after a production deployment.
+  app.use(express.static(frontendDist, {
+    setHeaders(res, filePath) {
+      const fileName = path.basename(filePath);
+      if (fileName === "index.html" || fileName === "sw.js") {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      }
+    },
+  }));
 
-  // SPA fallback — every non-API route returns index.html
+  // SPA fallback — every non-API route returns index.html without browser caching.
   app.get("/*splat", (_req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
