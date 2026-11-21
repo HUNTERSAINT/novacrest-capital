@@ -1,5 +1,5 @@
 // Novacrest Capital — minimal service worker (required for PWA installability)
-const CACHE = "novacrest-v1";
+const CACHE = "novacrest-v2";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
