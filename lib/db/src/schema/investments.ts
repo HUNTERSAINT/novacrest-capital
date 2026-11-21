@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, real, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, real, boolean, integer, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -20,6 +20,12 @@ export const investmentsTable = pgTable("investments", {
   cryptoType: text("crypto_type").notNull(),
   walletAddress: text("wallet_address"),
   compounding: boolean("compounding").notNull().default(false),
+  slowSignalApplied: boolean("slow_signal_applied").notNull().default(false),
+  slowSignalDays: integer("slow_signal_days"),
+  slowSignalOriginalEndDate: text("slow_signal_original_end_date"),
+  slowSignalAppliedAt: timestamp("slow_signal_applied_at", { withTimezone: true }),
+  slowSignalAdminId: integer("slow_signal_admin_id"),
+  slowSignalReason: text("slow_signal_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
