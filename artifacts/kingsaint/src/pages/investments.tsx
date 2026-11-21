@@ -90,12 +90,29 @@ export default function Investments() {
                   </CardHeader>
                   <CardContent>
                     {inv.slowSignalActive && (
-                      <div role="alert" className="mb-5 rounded-sm border-2 border-red-600 bg-red-950/40 p-4 text-red-100">
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
-                          <div>
-                            <p className="font-bold tracking-wider text-red-500">LOW SIGNAL MODE</p>
-                            <p className="text-sm text-red-100/90 mt-1">This investment is currently in Low Signal Mode. Please contact support for more information.</p>
+                      <div role="alert" className="relative isolate mb-5 overflow-hidden rounded-xl border border-red-500/55 bg-gradient-to-br from-[#3b080d] via-[#21070b] to-[#12070a] p-4 text-red-50 shadow-[0_10px_30px_rgba(220,38,38,0.16)] md:p-5">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-7 -top-9 h-36 w-36 rounded-full border border-red-400/10">
+                          <div className="absolute inset-4 rounded-full border border-red-400/15">
+                            <div className="absolute inset-4 rounded-full border border-red-400/20" />
+                          </div>
+                        </div>
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-red-500/[0.08] to-transparent" />
+                        <div className="relative flex items-start gap-3 md:gap-4">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-300 shadow-[inset_0_0_18px_rgba(248,113,113,0.12)] md:h-12 md:w-12">
+                            <div className="relative">
+                              <AlertTriangle className="h-6 w-6" strokeWidth={2.2} />
+                              <span className="absolute -right-2 -top-2 h-2 w-2 animate-pulse rounded-full bg-red-400 ring-4 ring-red-500/15" />
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/80">Investment status alert</span>
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-200">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" /> Attention
+                              </span>
+                            </div>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">LOW SIGNAL <span className="text-red-300">MODE</span></p>
+                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">This investment has a signal delay. Contact support for details about your investment status.</p>
                           </div>
                         </div>
                       </div>
