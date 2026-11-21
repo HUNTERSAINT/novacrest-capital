@@ -112,7 +112,7 @@ export default function Investments() {
                               </span>
                             </div>
                             <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">WEAK SIGNAL <span className="text-red-300">MODE</span></p>
-                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">This investment has a weak signal. Contact support for details about your investment status.</p>
+                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">Weak Signal Mode is enabled for this investment. Its maturity date may be affected. For information about the reason and expected timeline, please contact our support team.</p>
                           </div>
                         </div>
                       </div>
