@@ -24,7 +24,10 @@ function formatInvestment(inv: typeof investmentsTable.$inferSelect) {
     roiPercent: inv.roiPercent,
     durationDays: inv.durationDays,
     status: inv.status,
-    slowSignalActive: inv.slowSignalActive ?? false,
+    slowSignalActive: Boolean(
+      inv.slowSignalActive ||
+      (inv.slowSignalApplied && inv.slowSignalOriginalEndDate && inv.endDate !== inv.slowSignalOriginalEndDate),
+    ),
     startDate: inv.startDate,
     endDate: inv.endDate,
     profitEarned: inv.profitEarned,
