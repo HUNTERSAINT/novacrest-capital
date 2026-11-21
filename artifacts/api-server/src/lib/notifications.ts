@@ -96,6 +96,19 @@ async function emailAdmins(admins: { email: string }[], subject: string, message
   }));
 }
 
+/** Send a push notification to one user using their registered Expo tokens. Non-fatal. */
+export async function notifyUserPush(userId: number, title: string, body: string) {
+  try {
+    const rows = await db.select({ token: pushTokensTable.token })
+      .from(pushTokensTable).where(eq(pushTokensTable.userId, userId));
+    await sendExpoPushMessages(rows.map(row => row.token).filter(Boolean), title, body, {
+      screen: "notifications",
+    });
+  } catch {
+    // In-app notification remains available if push delivery fails.
+  }
+}
+
 /** Create the same notification for every admin user and send push/email notifications. Non-fatal. */
 export async function notifyAdmins({
   type,
