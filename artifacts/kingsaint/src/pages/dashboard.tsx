@@ -87,7 +87,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <p className="mt-1 text-xl font-black leading-tight tracking-wide text-white md:text-2xl">WEAK SIGNAL <span className="text-red-300">MODE</span></p>
-                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-red-100/85">One or more investments have a weak signal. Please contact support for details about your investment status.</p>
+                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-red-100/85">Weak Signal Mode is enabled for one or more of your investments. This may affect the applicable maturity date. For details about the reason and expected timeline, please contact our support team.</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {weakSignalInvestments.map((investment) => (
                           <span key={investment.id} className="inline-flex items-center rounded-md border border-red-300/20 bg-black/20 px-2.5 py-1 text-xs font-semibold text-red-100">
