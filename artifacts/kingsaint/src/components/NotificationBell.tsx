@@ -19,11 +19,13 @@ const typeConfig: Record<string, { emoji: string; adminLink?: string }> = {
   kyc:                 { emoji: "🛡️" },
   referral_bonus:      { emoji: "🎁" },
   investment_started:  { emoji: "📈" },
+  investment_slow_signal: { emoji: "⏳" },
   profit_credited:     { emoji: "💰" },
   // Admin-facing
   admin_chat_message:       { emoji: "💬", adminLink: "/admin/chat" },
   admin_investment_started: { emoji: "📈", adminLink: "/admin/investments" },
   admin_investment_credited:{ emoji: "💰", adminLink: "/admin/investments" },
+  admin_slow_signal_applied: { emoji: "⏳", adminLink: "/admin/investments" },
   admin_user_credited:      { emoji: "💳", adminLink: "/admin/investments" },
   admin_kyc_submitted:      { emoji: "🪪", adminLink: "/admin/kyc" },
   admin_deposit_request:    { emoji: "📥", adminLink: "/admin/transactions" },
