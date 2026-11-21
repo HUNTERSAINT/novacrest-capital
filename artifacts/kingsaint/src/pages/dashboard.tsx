@@ -10,7 +10,7 @@ import { format } from "date-fns";
 export default function Dashboard() {
   const { data: dashboard, isLoading } = useGetDashboard();
   const { data: investments } = useGetInvestments();
-  const lowSignalInvestments = (investments ?? []).filter((investment) => investment.status === "active" && investment.slowSignalActive);
+  const lowSignalInvestments = (investments ?? []).filter((investment) => investment.slowSignalActive);
 
   if (isLoading || !dashboard) {
     return (
