@@ -56,21 +56,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {lowSignalInvestments.length > 0 && (
-        <div role="alert" className="rounded-sm border-2 border-red-600 bg-red-950/40 p-4 md:p-5 text-red-100 shadow-[0_0_24px_rgba(220,38,38,0.12)]">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
-            <div className="min-w-0">
-              <p className="font-bold tracking-wider text-red-500">LOW SIGNAL MODE</p>
-              <p className="text-sm text-red-100/90 mt-1">One or more of your active investments are currently in Low Signal Mode. Please contact support for more information.</p>
-              <div className="mt-3 space-y-1 text-sm font-medium">
-                {lowSignalInvestments.map((investment) => <p key={investment.id}>{investment.planName}</p>)}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -79,6 +64,15 @@ export default function Dashboard() {
               <CardDescription className="text-muted-foreground flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-primary" /> Total Balance
               </CardDescription>
+              {lowSignalInvestments.length > 0 && (
+                <div role="alert" className="mt-1 mb-2 rounded-sm border-2 border-red-600 bg-red-950/50 p-3 text-red-100 shadow-[0_0_24px_rgba(220,38,38,0.16)]">
+                  <p className="text-xl md:text-2xl font-extrabold tracking-wide text-red-500 leading-tight">LOW SIGNAL MODE</p>
+                  <p className="text-sm font-medium text-red-100 mt-1">Your investment is in Low Signal Mode. Contact support for more information.</p>
+                  <div className="mt-2 text-sm font-semibold">
+                    {lowSignalInvestments.map((investment) => <p key={investment.id}>{investment.planName}</p>)}
+                  </div>
+                </div>
+              )}
               <CardTitle className="text-3xl font-serif text-white">{formatCurrency(dashboard.balance)}</CardTitle>
             </CardHeader>
             <CardContent>
