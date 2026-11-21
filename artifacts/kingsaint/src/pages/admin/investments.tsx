@@ -12,7 +12,7 @@ type InvestmentRow = {
   amount: number; roiPercent: number; durationDays: number; status: string;
   startDate: string; endDate: string; profitEarned: number; createdAt: string;
   userName: string | null; userEmail: string | null;
-  slowSignalApplied: boolean; slowSignalDays: number | null;
+  slowSignalApplied: boolean; slowSignalActive: boolean; slowSignalDays: number | null;
   slowSignalOriginalEndDate: string | null; slowSignalAppliedAt: string | null;
   slowSignalAdminId: number | null; slowSignalReason: string | null;
 };
