@@ -128,7 +128,7 @@ export async function notifyUserEmail(userId: number, subject: string, message: 
         from,
         to: [user.email],
         subject: `NovaCrest: ${subject}`,
-        text: `Hello ${user.fullName ?? "there"},\\n\\n${message}\\n\\nNovaCrest Support`,
+        text: `Hello ${user.fullName ?? "there"},\n\n${message}\n\nNovaCrest Support`,
         html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><p>Hello ${user.fullName ?? "there"},</p><p>${safeMessage}</p><p>NovaCrest Support</p></div>`,
       }),
     });
