@@ -65,11 +65,37 @@ export default function Dashboard() {
                 <Wallet className="w-4 h-4 text-primary" /> Total Balance
               </CardDescription>
               {lowSignalInvestments.length > 0 && (
-                <div role="alert" className="mt-1 mb-2 rounded-sm border-2 border-red-600 bg-red-950/50 p-3 text-red-100 shadow-[0_0_24px_rgba(220,38,38,0.16)]">
-                  <p className="text-xl md:text-2xl font-extrabold tracking-wide text-red-500 leading-tight">LOW SIGNAL MODE</p>
-                  <p className="text-sm font-medium text-red-100 mt-1">Your investment is in Low Signal Mode. Contact support for more information.</p>
-                  <div className="mt-2 text-sm font-semibold">
-                    {lowSignalInvestments.map((investment) => <p key={investment.id}>{investment.planName}</p>)}
+                <div role="alert" className="relative isolate mt-3 mb-3 overflow-hidden rounded-xl border border-red-500/60 bg-gradient-to-br from-[#3b080d] via-[#21070b] to-[#12070a] p-4 text-red-50 shadow-[0_12px_38px_rgba(220,38,38,0.18)] md:p-5">
+                  <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full border border-red-400/10">
+                    <div className="absolute inset-4 rounded-full border border-red-400/15">
+                      <div className="absolute inset-4 rounded-full border border-red-400/20" />
+                    </div>
+                  </div>
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-red-500/[0.08] to-transparent" />
+                  <div className="relative flex items-start gap-3 md:gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-300 shadow-[inset_0_0_18px_rgba(248,113,113,0.12)] md:h-14 md:w-14">
+                      <div className="relative">
+                        <AlertTriangle className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2.2} />
+                        <span className="absolute -right-2 -top-2 h-2.5 w-2.5 animate-pulse rounded-full bg-red-400 ring-4 ring-red-500/15" />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-red-300/80">Investment status alert</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-200">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" /> Action required
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xl font-black leading-tight tracking-wide text-white md:text-2xl">LOW SIGNAL <span className="text-red-300">MODE</span></p>
+                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-red-100/85">One or more investments have a signal delay. Please contact support for details about your investment status.</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {lowSignalInvestments.map((investment) => (
+                          <span key={investment.id} className="inline-flex items-center rounded-md border border-red-300/20 bg-black/20 px-2.5 py-1 text-xs font-semibold text-red-100">
+                            {investment.planName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
