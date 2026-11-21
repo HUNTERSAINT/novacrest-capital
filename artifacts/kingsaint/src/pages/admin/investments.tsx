@@ -95,20 +95,14 @@ export default function AdminInvestments() {
 
   const applySlowSignal = async (row: InvestmentRow) => {
     if (row.slowSignalApplied) return;
-    const reason = window.prompt("Reason for applying Slow Signal Mode (required):");
-    if (reason === null) return;
-    if (reason.trim().length < 3 || reason.trim().length > 500) {
-      toast({ variant: "destructive", title: "Reason required", description: "Enter a reason between 3 and 500 characters." });
-      return;
-    }
-    if (!window.confirm(`Apply Slow Signal Mode to investment #${row.id}? The system will add 10–14 days to its current maturity date and notify the user.`)) return;
+    if (!window.confirm(`Apply Slow Signal Mode to investment #${row.id}? The system will add 10–14 days to its current maturity date and notify the user to contact support for the reason.`)) return;
 
     setSlowSignalSavingId(row.id);
     try {
       const response = await fetch(`/api/admin/investments/${row.id}/slow-signal`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
-        body: JSON.stringify({ reason: reason.trim() }),
+        body: JSON.stringify({}),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Could not apply Slow Signal Mode");
