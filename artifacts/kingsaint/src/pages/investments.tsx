@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { TrendingUp, Clock, ArrowUpRight, Wallet } from "lucide-react";
+import { TrendingUp, Clock, ArrowUpRight, Wallet, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 
 const statusColor: Record<string, string> = {
@@ -89,6 +89,17 @@ export default function Investments() {
                     </div>
                   </CardHeader>
                   <CardContent>
+                    {inv.status === "active" && inv.slowSignalActive && (
+                      <div role="alert" className="mb-5 rounded-sm border-2 border-red-600 bg-red-950/40 p-4 text-red-100">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="font-bold tracking-wider text-red-500">LOW SIGNAL MODE</p>
+                            <p className="text-sm text-red-100/90 mt-1">This investment is currently in Low Signal Mode. Please contact support for more information.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Principal</p>
