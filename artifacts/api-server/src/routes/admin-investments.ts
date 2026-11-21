@@ -3,6 +3,7 @@ import { db, investmentsTable, usersTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middlewares/auth.js";
+import { createNotification, notifyAdmins, notifyUserPush } from "../lib/notifications.js";
 
 const router = Router();
 
@@ -19,6 +20,12 @@ router.get("/admin/investments", requireAdmin, async (_req, res): Promise<void> 
     status: investmentsTable.status,
     startDate: investmentsTable.startDate,
     endDate: investmentsTable.endDate,
+    slowSignalApplied: investmentsTable.slowSignalApplied,
+    slowSignalDays: investmentsTable.slowSignalDays,
+    slowSignalOriginalEndDate: investmentsTable.slowSignalOriginalEndDate,
+    slowSignalAppliedAt: investmentsTable.slowSignalAppliedAt,
+    slowSignalAdminId: investmentsTable.slowSignalAdminId,
+    slowSignalReason: investmentsTable.slowSignalReason,
     profitEarned: investmentsTable.profitEarned,
     createdAt: investmentsTable.createdAt,
     userName: usersTable.fullName,
@@ -96,4 +103,102 @@ router.patch("/admin/investments/:id/maturity", requireAdmin, async (req, res): 
   res.json({ id: updated.id, endDate: updated.endDate, status: updated.status });
 });
 
+
+const SlowSignalBody = z.object({ reason: z.string().trim().min(3).max(500) });
+
+router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    res.status(400).json({ error: "Invalid investment ID" });
+    return;
+  }
+  const parsed = SlowSignalBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Please provide a reason between 3 and 500 characters." });
+    return;
+  }
+
+  const [investment] = await db.select().from(investmentsTable)
+    .where(eq(investmentsTable.id, id)).limit(1);
+  if (!investment) {
+    res.status(404).json({ error: "Investment not found" });
+    return;
+  }
+  if (investment.status !== "active") {
+    res.status(409).json({ error: "Slow Signal Mode can only be applied to active investments." });
+    return;
+  }
+  if (investment.slowSignalApplied) {
+    res.status(409).json({ error: "Slow Signal Mode has already been applied to this investment." });
+    return;
+  }
+
+  const originalEndDate = investment.endDate;
+  const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(originalEndDate);
+  const baseDate = new Date(isDateOnly ? `${originalEndDate}T00:00:00.000Z` : originalEndDate);
+  if (Number.isNaN(baseDate.getTime())) {
+    res.status(409).json({ error: "The investment has an invalid maturity date." });
+    return;
+  }
+
+  const delayDays = Math.floor(Math.random() * 5) + 10;
+  const extendedDate = new Date(baseDate.getTime() + delayDays * 24 * 60 * 60 * 1000);
+  const newEndDate = isDateOnly ? extendedDate.toISOString().slice(0, 10) : extendedDate.toISOString();
+  const appliedAt = new Date();
+
+  // Conditional update prevents duplicate application and races with settlement.
+  const [updated] = await db.update(investmentsTable)
+    .set({
+      endDate: newEndDate,
+      slowSignalApplied: true,
+      slowSignalDays: delayDays,
+      slowSignalOriginalEndDate: originalEndDate,
+      slowSignalAppliedAt: appliedAt,
+      slowSignalAdminId: req.userId!,
+      slowSignalReason: parsed.data.reason,
+    })
+    .where(and(
+      eq(investmentsTable.id, id),
+      eq(investmentsTable.status, "active"),
+      eq(investmentsTable.slowSignalApplied, false),
+      eq(investmentsTable.endDate, originalEndDate),
+    ))
+    .returning({
+      id: investmentsTable.id,
+      userId: investmentsTable.userId,
+      planName: investmentsTable.planName,
+      endDate: investmentsTable.endDate,
+    });
+
+  if (!updated) {
+    res.status(409).json({ error: "Investment changed or was settled. Refresh and try again." });
+    return;
+  }
+
+  const originalDisplay = isDateOnly ? originalEndDate : new Date(originalEndDate).toISOString();
+  const newDisplay = isDateOnly ? newEndDate : new Date(newEndDate).toISOString();
+  const message = `Slow Signal Mode was applied to your ${updated.planName} investment #${updated.id}. Maturity changed from ${originalDisplay} UTC to ${newDisplay} UTC (+${delayDays} days). Reason: ${parsed.data.reason}`;
+
+  await createNotification({
+    userId: updated.userId,
+    type: "investment_slow_signal",
+    title: "Investment maturity updated",
+    message,
+  });
+  await notifyUserPush(updated.userId, "Investment maturity updated", message);
+  await notifyAdmins({
+    type: "admin_slow_signal_applied",
+    title: "Slow Signal Mode applied",
+    message: `Admin #${req.userId} applied Slow Signal Mode to investment #${updated.id} (user #${updated.userId}); ${delayDays} days added. Reason: ${parsed.data.reason}. New maturity: ${newEndDate}.`,
+  });
+
+  res.json({
+    id: updated.id,
+    slowSignalApplied: true,
+    slowSignalDays: delayDays,
+    originalEndDate,
+    endDate: updated.endDate,
+    slowSignalAppliedAt: appliedAt.toISOString(),
+  });
+});
 export default router;
