@@ -21,6 +21,7 @@ export const investmentsTable = pgTable("investments", {
   walletAddress: text("wallet_address"),
   compounding: boolean("compounding").notNull().default(false),
   slowSignalApplied: boolean("slow_signal_applied").notNull().default(false),
+  slowSignalActive: boolean("slow_signal_active").notNull().default(false),
   slowSignalDays: integer("slow_signal_days"),
   slowSignalOriginalEndDate: text("slow_signal_original_end_date"),
   slowSignalAppliedAt: timestamp("slow_signal_applied_at", { withTimezone: true }),

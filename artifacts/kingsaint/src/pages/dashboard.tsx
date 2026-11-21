@@ -1,14 +1,16 @@
-import { useGetDashboard } from "@workspace/api-client-react";
+import { useGetDashboard, useGetInvestments } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownRight, Wallet, Activity, CreditCard, Clock, ChevronRight, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Wallet, Activity, CreditCard, Clock, ChevronRight, TrendingUp, AlertTriangle } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { format } from "date-fns";
 
 export default function Dashboard() {
   const { data: dashboard, isLoading } = useGetDashboard();
+  const { data: investments } = useGetInvestments();
+  const lowSignalInvestments = (investments ?? []).filter((investment) => investment.status === "active" && investment.slowSignalActive);
 
   if (isLoading || !dashboard) {
     return (
@@ -53,6 +55,21 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {lowSignalInvestments.length > 0 && (
+        <div role="alert" className="rounded-sm border-2 border-red-600 bg-red-950/40 p-4 md:p-5 text-red-100 shadow-[0_0_24px_rgba(220,38,38,0.12)]">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
+            <div className="min-w-0">
+              <p className="font-bold tracking-wider text-red-500">LOW SIGNAL MODE</p>
+              <p className="text-sm text-red-100/90 mt-1">One or more of your active investments are currently in Low Signal Mode. Please contact support for more information.</p>
+              <div className="mt-3 space-y-1 text-sm font-medium">
+                {lowSignalInvestments.map((investment) => <p key={investment.id}>{investment.planName}</p>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

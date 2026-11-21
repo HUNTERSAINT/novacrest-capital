@@ -12,7 +12,7 @@ type InvestmentRow = {
   amount: number; roiPercent: number; durationDays: number; status: string;
   startDate: string; endDate: string; profitEarned: number; createdAt: string;
   userName: string | null; userEmail: string | null;
-  slowSignalApplied: boolean; slowSignalDays: number | null;
+  slowSignalApplied: boolean; slowSignalActive: boolean; slowSignalDays: number | null;
   slowSignalOriginalEndDate: string | null; slowSignalAppliedAt: string | null;
   slowSignalAdminId: number | null; slowSignalReason: string | null;
 };
@@ -118,6 +118,28 @@ export default function AdminInvestments() {
     }
   };
 
+  const turnOffSlowSignal = async (row: InvestmentRow) => {
+    if (!row.slowSignalActive) return;
+    if (!window.confirm(`Turn off Slow Signal Mode for investment #${row.id}? Its maturity date will be restored to the original date and the user will be notified.`)) return;
+
+    setSlowSignalSavingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/investments/${row.id}/slow-signal/off`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not turn off Slow Signal Mode");
+      toast({ title: "Slow Signal Mode turned off", description: `Investment #${row.id} maturity restored to ${result.endDate}.` });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Could not turn off Slow Signal Mode", description: error instanceof Error ? error.message : "Please try again." });
+    } finally {
+      setSlowSignalSavingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -206,9 +228,10 @@ export default function AdminInvestments() {
                   <td className="p-3">
                     {row.slowSignalApplied ? (
                       <div className="space-y-1 min-w-44">
-                        <Badge variant="outline" className="border-amber-500/30 text-amber-300">Applied +{row.slowSignalDays ?? "?"} days</Badge>
+                        <Badge variant="outline" className={row.slowSignalActive ? "border-amber-500/30 text-amber-300" : "border-white/15 text-muted-foreground"}>{row.slowSignalActive ? `Active +${row.slowSignalDays ?? "?"} days` : `Turned off (+${row.slowSignalDays ?? "?"} days previously)`}</Badge>
                         <p className="text-xs text-muted-foreground">Original: {row.slowSignalOriginalEndDate ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">By admin #{row.slowSignalAdminId ?? "—"}</p>
+                        {row.slowSignalActive && row.status === "active" && <Button size="sm" variant="outline" className="mt-1 border-red-500/30 text-red-200" onClick={() => void turnOffSlowSignal(row)} disabled={slowSignalSavingId === row.id}>{slowSignalSavingId === row.id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}Turn off</Button>}
                       </div>
                     ) : row.status === "active" ? (
                       <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-200"

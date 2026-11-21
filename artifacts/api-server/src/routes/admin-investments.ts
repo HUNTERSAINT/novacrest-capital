@@ -22,6 +22,7 @@ router.get("/admin/investments", requireAdmin, async (_req, res): Promise<void> 
     startDate: investmentsTable.startDate,
     endDate: investmentsTable.endDate,
     slowSignalApplied: investmentsTable.slowSignalApplied,
+    slowSignalActive: investmentsTable.slowSignalActive,
     slowSignalDays: investmentsTable.slowSignalDays,
     slowSignalOriginalEndDate: investmentsTable.slowSignalOriginalEndDate,
     slowSignalAppliedAt: investmentsTable.slowSignalAppliedAt,
@@ -148,6 +149,7 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
     .set({
       endDate: newEndDate,
       slowSignalApplied: true,
+      slowSignalActive: true,
       slowSignalDays: delayDays,
       slowSignalOriginalEndDate: originalEndDate,
       slowSignalAppliedAt: appliedAt,
@@ -199,4 +201,67 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
     slowSignalAppliedAt: appliedAt.toISOString(),
   });
 });
+
+router.post("/admin/investments/:id/slow-signal/off", requireAdmin, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    res.status(400).json({ error: "Invalid investment ID" });
+    return;
+  }
+
+  const [investment] = await db.select().from(investmentsTable)
+    .where(eq(investmentsTable.id, id)).limit(1);
+  if (!investment) {
+    res.status(404).json({ error: "Investment not found" });
+    return;
+  }
+  if (investment.status !== "active") {
+    res.status(409).json({ error: "Slow Signal Mode can only be turned off for active investments." });
+    return;
+  }
+  if (!investment.slowSignalApplied || !investment.slowSignalActive || !investment.slowSignalOriginalEndDate) {
+    res.status(409).json({ error: "Slow Signal Mode is not currently active for this investment." });
+    return;
+  }
+
+  const originalEndDate = investment.slowSignalOriginalEndDate;
+  const currentEndDate = investment.endDate;
+  const [updated] = await db.update(investmentsTable)
+    .set({ endDate: originalEndDate, slowSignalActive: false })
+    .where(and(
+      eq(investmentsTable.id, id),
+      eq(investmentsTable.status, "active"),
+      eq(investmentsTable.slowSignalActive, true),
+      eq(investmentsTable.endDate, currentEndDate),
+    ))
+    .returning({
+      id: investmentsTable.id,
+      userId: investmentsTable.userId,
+      planName: investmentsTable.planName,
+      endDate: investmentsTable.endDate,
+    });
+
+  if (!updated) {
+    res.status(409).json({ error: "Investment changed or was settled. Refresh and try again." });
+    return;
+  }
+
+  const message = `Slow Signal Mode has been turned off for your ${updated.planName} investment #${updated.id}. Your maturity date has been restored to ${originalEndDate}.`;
+  await createNotification({
+    userId: updated.userId,
+    type: "investment_slow_signal",
+    title: "Slow Signal Mode turned off",
+    message,
+  });
+  await notifyUserPush(updated.userId, "Slow Signal Mode turned off", message);
+  await notifyUserEmail(updated.userId, "Slow Signal Mode turned off", message);
+  await notifyAdmins({
+    type: "admin_slow_signal_disabled",
+    title: "Slow Signal Mode turned off",
+    message: `Admin #${req.userId} turned off Slow Signal Mode for investment #${updated.id} (user #${updated.userId}). Maturity restored to ${originalEndDate}.`,
+  });
+
+  res.json({ id: updated.id, slowSignalActive: false, endDate: updated.endDate });
+});
+
 export default router;
