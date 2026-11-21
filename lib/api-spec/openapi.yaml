@@ -861,7 +861,7 @@ components:
 
     Investment:
       type: object
-      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, startDate, endDate, profitEarned, createdAt]
+      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, slowSignalActive, startDate, endDate, profitEarned, createdAt]
       properties:
         id:
           type: number
@@ -882,6 +882,8 @@ components:
         status:
           type: string
           enum: [active, completed, cancelled]
+        slowSignalActive:
+          type: boolean
         startDate:
           type: string
         endDate:
