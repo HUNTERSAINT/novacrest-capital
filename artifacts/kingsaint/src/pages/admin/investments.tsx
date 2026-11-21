@@ -118,6 +118,28 @@ export default function AdminInvestments() {
     }
   };
 
+  const turnOffSlowSignal = async (row: InvestmentRow) => {
+    if (!row.slowSignalActive) return;
+    if (!window.confirm(`Turn off Slow Signal Mode for investment #${row.id}? Its maturity date will be restored to the original date and the user will be notified.`)) return;
+
+    setSlowSignalSavingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/investments/${row.id}/slow-signal/off`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not turn off Slow Signal Mode");
+      toast({ title: "Slow Signal Mode turned off", description: `Investment #${row.id} maturity restored to ${result.endDate}.` });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Could not turn off Slow Signal Mode", description: error instanceof Error ? error.message : "Please try again." });
+    } finally {
+      setSlowSignalSavingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
