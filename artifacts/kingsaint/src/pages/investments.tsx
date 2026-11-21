@@ -89,7 +89,7 @@ export default function Investments() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {inv.status === "active" && inv.slowSignalActive && (
+                    {inv.slowSignalActive && (
                       <div role="alert" className="mb-5 rounded-sm border-2 border-red-600 bg-red-950/40 p-4 text-red-100">
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
