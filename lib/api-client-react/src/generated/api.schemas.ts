@@ -237,6 +237,7 @@ export interface Investment {
   roiPercent: number;
   durationDays: number;
   status: InvestmentStatus;
+  slowSignalActive: boolean;
   startDate: string;
   endDate: string;
   profitEarned: number;
