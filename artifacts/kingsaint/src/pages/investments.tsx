@@ -111,8 +111,8 @@ export default function Investments() {
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" /> Attention
                               </span>
                             </div>
-                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">LOW SIGNAL <span className="text-red-300">MODE</span></p>
-                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">This investment has a signal delay. Contact support for details about your investment status.</p>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">WEAK SIGNAL <span className="text-red-300">MODE</span></p>
+                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">This investment has a weak signal. Contact support for details about your investment status.</p>
                           </div>
                         </div>
                       </div>
