@@ -12,6 +12,9 @@ type InvestmentRow = {
   amount: number; roiPercent: number; durationDays: number; status: string;
   startDate: string; endDate: string; profitEarned: number; createdAt: string;
   userName: string | null; userEmail: string | null;
+  slowSignalApplied: boolean; slowSignalDays: number | null;
+  slowSignalOriginalEndDate: string | null; slowSignalAppliedAt: string | null;
+  slowSignalAdminId: number | null; slowSignalReason: string | null;
 };
 type PlanGroup = {
   planId: number; planName: string; totalAmount: number; investmentCount: number;
@@ -43,6 +46,7 @@ export default function AdminInvestments() {
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [dates, setDates] = useState<Record<number, string>>({});
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [slowSignalSavingId, setSlowSignalSavingId] = useState<number | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -86,6 +90,38 @@ export default function AdminInvestments() {
     } catch (error) {
       toast({ variant: "destructive", title: "Update failed", description: error instanceof Error ? error.message : "Please try again." });
     } finally { setSavingId(null); }
+  };
+
+
+  const applySlowSignal = async (row: InvestmentRow) => {
+    if (row.slowSignalApplied) return;
+    const reason = window.prompt("Reason for applying Slow Signal Mode (required):");
+    if (reason === null) return;
+    if (reason.trim().length < 3 || reason.trim().length > 500) {
+      toast({ variant: "destructive", title: "Reason required", description: "Enter a reason between 3 and 500 characters." });
+      return;
+    }
+    if (!window.confirm(`Apply Slow Signal Mode to investment #${row.id}? The system will add 10–14 days to its current maturity date and notify the user.`)) return;
+
+    setSlowSignalSavingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/investments/${row.id}/slow-signal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not apply Slow Signal Mode");
+      toast({
+        title: "Slow Signal Mode applied",
+        description: `Investment #${row.id} extended by ${result.slowSignalDays} days. New maturity: ${result.endDate}.`,
+      });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Slow Signal Mode failed", description: error instanceof Error ? error.message : "Please try again." });
+    } finally {
+      setSlowSignalSavingId(null);
+    }
   };
 
   return (
@@ -142,12 +178,12 @@ export default function AdminInvestments() {
       <section className="space-y-3">
         <h2 className="text-xl font-serif text-white">{selectedPlan === null ? "All investors" : `Investors in ${data?.plans.find(p => p.planId === selectedPlan)?.planName ?? "selected plan"}`}</h2>
         <div className="overflow-x-auto rounded-sm border border-white/10 bg-card">
-          <table className="w-full min-w-[1050px] text-sm">
+          <table className="w-full min-w-[1220px] text-sm">
             <thead className="bg-white/5 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="text-left p-3">Investor</th><th className="text-left p-3">Plan</th>
                 <th className="text-right p-3">Amount</th><th className="text-left p-3">Started</th>
-                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity date & time</th>
+                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity date & time</th><th className="text-left p-3">Slow Signal Mode</th>
               </tr>
             </thead>
             <tbody>
@@ -172,9 +208,25 @@ export default function AdminInvestments() {
                       </div>
                     ) : <span className="text-xs text-muted-foreground">Locked</span>}
                   </td>
+
+                  <td className="p-3">
+                    {row.slowSignalApplied ? (
+                      <div className="space-y-1 min-w-44">
+                        <Badge variant="outline" className="border-amber-500/30 text-amber-300">Applied +{row.slowSignalDays ?? "?"} days</Badge>
+                        <p className="text-xs text-muted-foreground">Original: {row.slowSignalOriginalEndDate ?? "—"}</p>
+                        <p className="text-xs text-muted-foreground">By admin #{row.slowSignalAdminId ?? "—"}</p>
+                      </div>
+                    ) : row.status === "active" ? (
+                      <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-200"
+                        onClick={() => void applySlowSignal(row)} disabled={slowSignalSavingId === row.id}>
+                        {slowSignalSavingId === row.id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}
+                        Apply Slow Signal
+                      </Button>
+                    ) : <span className="text-xs text-muted-foreground">Unavailable</span>}
+                  </td>
                 </tr>
               ))}
-              {visibleRows.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No investments in this view.</td></tr>}
+              {visibleRows.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No investments in this view.</td></tr>}
             </tbody>
           </table>
         </div>
