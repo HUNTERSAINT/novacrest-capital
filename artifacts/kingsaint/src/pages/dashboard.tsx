@@ -10,7 +10,7 @@ import { format } from "date-fns";
 export default function Dashboard() {
   const { data: dashboard, isLoading } = useGetDashboard();
   const { data: investments } = useGetInvestments();
-  const lowSignalInvestments = (investments ?? []).filter((investment) => investment.slowSignalActive);
+  const weakSignalInvestments = (investments ?? []).filter((investment) => investment.slowSignalActive);
 
   if (isLoading || !dashboard) {
     return (
@@ -64,7 +64,7 @@ export default function Dashboard() {
               <CardDescription className="text-muted-foreground flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-primary" /> Total Balance
               </CardDescription>
-              {lowSignalInvestments.length > 0 && (
+              {weakSignalInvestments.length > 0 && (
                 <div role="alert" className="relative isolate mt-3 mb-3 overflow-hidden rounded-xl border border-red-500/60 bg-gradient-to-br from-[#3b080d] via-[#21070b] to-[#12070a] p-4 text-red-50 shadow-[0_12px_38px_rgba(220,38,38,0.18)] md:p-5">
                   <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full border border-red-400/10">
                     <div className="absolute inset-4 rounded-full border border-red-400/15">
@@ -86,10 +86,10 @@ export default function Dashboard() {
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" /> Action required
                         </span>
                       </div>
-                      <p className="mt-1 text-xl font-black leading-tight tracking-wide text-white md:text-2xl">LOW SIGNAL <span className="text-red-300">MODE</span></p>
-                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-red-100/85">One or more investments have a signal delay. Please contact support for details about your investment status.</p>
+                      <p className="mt-1 text-xl font-black leading-tight tracking-wide text-white md:text-2xl">WEAK SIGNAL <span className="text-red-300">MODE</span></p>
+                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-red-100/85">One or more investments have a weak signal. Please contact support for details about your investment status.</p>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {lowSignalInvestments.map((investment) => (
+                        {weakSignalInvestments.map((investment) => (
                           <span key={investment.id} className="inline-flex items-center rounded-md border border-red-300/20 bg-black/20 px-2.5 py-1 text-xs font-semibold text-red-100">
                             {investment.planName}
                           </span>
