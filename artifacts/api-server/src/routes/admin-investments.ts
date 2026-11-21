@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomInt } from "node:crypto";
 import { db, investmentsTable, usersTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -140,8 +141,12 @@ router.post("/admin/investments/:id/slow-signal", requireAdmin, async (req, res)
     res.status(409).json({ error: "The investment has an invalid maturity date." });
     return;
   }
+  if (baseDate.getTime() <= Date.now()) {
+    res.status(409).json({ error: "Slow Signal Mode must be applied before the investment's maturity date." });
+    return;
+  }
 
-  const delayDays = Math.floor(Math.random() * 5) + 10;
+  const delayDays = randomInt(10, 15);
   const extendedDate = new Date(baseDate.getTime() + delayDays * 24 * 60 * 60 * 1000);
   const newEndDate = isDateOnly ? extendedDate.toISOString().slice(0, 10) : extendedDate.toISOString();
   const appliedAt = new Date();
