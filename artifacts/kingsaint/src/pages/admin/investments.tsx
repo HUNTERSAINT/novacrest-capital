@@ -206,9 +206,10 @@ export default function AdminInvestments() {
                   <td className="p-3">
                     {row.slowSignalApplied ? (
                       <div className="space-y-1 min-w-44">
-                        <Badge variant="outline" className="border-amber-500/30 text-amber-300">Applied +{row.slowSignalDays ?? "?"} days</Badge>
+                        <Badge variant="outline" className={row.slowSignalActive ? "border-amber-500/30 text-amber-300" : "border-white/15 text-muted-foreground"}>{row.slowSignalActive ? `Active +${row.slowSignalDays ?? "?"} days` : `Turned off (+${row.slowSignalDays ?? "?"} days previously)`}</Badge>
                         <p className="text-xs text-muted-foreground">Original: {row.slowSignalOriginalEndDate ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">By admin #{row.slowSignalAdminId ?? "—"}</p>
+                        {row.slowSignalActive && row.status === "active" && <Button size="sm" variant="outline" className="mt-1 border-red-500/30 text-red-200" onClick={() => void turnOffSlowSignal(row)} disabled={slowSignalSavingId === row.id}>{slowSignalSavingId === row.id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}Turn off</Button>}
                       </div>
                     ) : row.status === "active" ? (
                       <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-200"
