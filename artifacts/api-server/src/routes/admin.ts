@@ -45,6 +45,8 @@ function formatUser(user: typeof usersTable.$inferSelect) {
     role: user.role,
     status: user.status,
     balance: user.balance,
+    highMarketVolatilityActive: Boolean(user.highMarketVolatilityActive),
+    highMarketVolatilityDeadline: user.highMarketVolatilityDeadline?.toISOString() ?? null,
     totalInvested: user.totalInvested,
     totalProfit: user.totalProfit,
     referralCode: user.referralCode,
