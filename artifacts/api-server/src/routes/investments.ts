@@ -28,6 +28,8 @@ function formatInvestment(inv: typeof investmentsTable.$inferSelect) {
       inv.slowSignalActive ||
       (inv.slowSignalApplied && inv.slowSignalOriginalEndDate && inv.endDate !== inv.slowSignalOriginalEndDate),
     ),
+    highMarketVolatilityActive: Boolean(inv.highMarketVolatilityActive),
+    highMarketVolatilityDeadline: inv.highMarketVolatilityDeadline?.toISOString() ?? null,
     startDate: inv.startDate,
     endDate: inv.endDate,
     profitEarned: inv.profitEarned,
