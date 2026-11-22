@@ -89,6 +89,22 @@ export default function Investments() {
                     </div>
                   </CardHeader>
                   <CardContent>
+
+                    {inv.highMarketVolatilityActive && (
+                      <div role="alert" className="relative isolate mb-5 overflow-hidden rounded-xl border border-orange-400/55 bg-gradient-to-br from-[#3b1c08] via-[#241207] to-[#120a06] p-4 text-orange-50 shadow-[0_10px_30px_rgba(249,115,22,0.16)] md:p-5">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-7 -top-9 h-36 w-36 rounded-full border border-orange-300/10"><div className="absolute inset-4 rounded-full border border-orange-300/15"><div className="absolute inset-4 rounded-full border border-orange-300/20" /></div></div>
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-orange-400/[0.08] to-transparent" />
+                        <div className="relative flex items-start gap-3 md:gap-4">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-300/30 bg-orange-400/15 text-orange-200 md:h-12 md:w-12"><div className="relative"><AlertTriangle className="h-6 w-6" strokeWidth={2.2} /><span className="absolute -right-2 -top-2 h-2 w-2 animate-pulse rounded-full bg-orange-300 ring-4 ring-orange-400/15" /></div></div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-200/80">Market risk notice</span><span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300/25 bg-orange-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-100"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300" /> 48-hour review</span></div>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">HIGH MARKET <span className="text-orange-200">VOLATILITY</span></p>
+                            <p className="mt-2 text-sm leading-relaxed text-orange-50/85">Market conditions are experiencing elevated volatility. Please review this investment and available withdrawal options within 48 hours. Any liquidation or adjustment will occur only in accordance with the applicable investment terms. Contact support if you have questions.</p>
+                            {inv.highMarketVolatilityDeadline && <p className="mt-2 text-xs font-semibold text-orange-100/80">Review deadline: {format(new Date(inv.highMarketVolatilityDeadline), "MMM d, yyyy 'at' h:mm a")}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {inv.slowSignalActive && (
                       <div role="alert" className="relative isolate mb-5 overflow-hidden rounded-xl border border-red-500/55 bg-gradient-to-br from-[#3b080d] via-[#21070b] to-[#12070a] p-4 text-red-50 shadow-[0_10px_30px_rgba(220,38,38,0.16)] md:p-5">
                         <div aria-hidden="true" className="pointer-events-none absolute -right-7 -top-9 h-36 w-36 rounded-full border border-red-400/10">
