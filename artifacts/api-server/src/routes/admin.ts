@@ -178,6 +178,8 @@ router.get("/admin/users/:id", requireAdmin, async (req, res): Promise<void> => 
       durationDays: i.durationDays,
       status: i.status,
       slowSignalActive: i.slowSignalActive,
+      highMarketVolatilityActive: Boolean(i.highMarketVolatilityActive),
+      highMarketVolatilityDeadline: i.highMarketVolatilityDeadline?.toISOString() ?? null,
       startDate: i.startDate,
       endDate: i.endDate,
       profitEarned: i.profitEarned,
