@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, real, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, real, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -20,6 +20,10 @@ export const usersTable = pgTable("users", {
   referralCode: text("referral_code").notNull().unique(),
   referredBy: text("referred_by"),
   avatarUrl: text("avatar_url"),
+  highMarketVolatilityActive: boolean("high_market_volatility_active").notNull().default(false),
+  highMarketVolatilityAppliedAt: timestamp("high_market_volatility_applied_at", { withTimezone: true }),
+  highMarketVolatilityDeadline: timestamp("high_market_volatility_deadline", { withTimezone: true }),
+  highMarketVolatilityAdminId: integer("high_market_volatility_admin_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
