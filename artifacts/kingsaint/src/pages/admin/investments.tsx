@@ -230,7 +230,7 @@ export default function AdminInvestments() {
       <section className="space-y-3">
         <h2 className="text-xl font-serif text-white">{selectedPlan === null ? "All investors" : `Investors in ${data?.plans.find(p => p.planId === selectedPlan)?.planName ?? "selected plan"}`}</h2>
         <div className="overflow-x-auto rounded-sm border border-white/10 bg-card">
-          <table className="w-full min-w-[1220px] text-sm">
+          <table className="w-full min-w-[1480px] text-sm">
             <thead className="bg-white/5 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="text-left p-3">Investor</th><th className="text-left p-3">Plan</th>
