@@ -11,6 +11,7 @@ export default function Dashboard() {
   const { data: dashboard, isLoading } = useGetDashboard();
   const { data: investments } = useGetInvestments();
   const weakSignalInvestments = (investments ?? []).filter((investment) => investment.slowSignalActive);
+  const highMarketVolatilityInvestments = (investments ?? []).filter((investment) => investment.highMarketVolatilityActive);
 
   if (isLoading || !dashboard) {
     return (
@@ -92,6 +93,33 @@ export default function Dashboard() {
                         {weakSignalInvestments.map((investment) => (
                           <span key={investment.id} className="inline-flex items-center rounded-md border border-red-300/20 bg-black/20 px-2.5 py-1 text-xs font-semibold text-red-100">
                             {investment.planName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {highMarketVolatilityInvestments.length > 0 && (
+                <div role="alert" className="relative isolate mt-3 mb-3 overflow-hidden rounded-xl border border-orange-400/60 bg-gradient-to-br from-[#3b1c08] via-[#241207] to-[#120a06] p-4 text-orange-50 shadow-[0_12px_38px_rgba(249,115,22,0.18)] md:p-5">
+                  <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full border border-orange-300/10"><div className="absolute inset-4 rounded-full border border-orange-300/15"><div className="absolute inset-4 rounded-full border border-orange-300/20" /></div></div>
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-orange-400/[0.08] to-transparent" />
+                  <div className="relative flex items-start gap-3 md:gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-300/30 bg-orange-400/15 text-orange-200 md:h-14 md:w-14">
+                      <div className="relative"><AlertTriangle className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2.2} /><span className="absolute -right-2 -top-2 h-2.5 w-2.5 animate-pulse rounded-full bg-orange-300 ring-4 ring-orange-400/15" /></div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200/80">Market risk notice</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300/25 bg-orange-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-100"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300" /> 48-hour review</span>
+                      </div>
+                      <p className="mt-1 text-xl font-black leading-tight tracking-wide text-white md:text-2xl">HIGH MARKET <span className="text-orange-200">VOLATILITY</span></p>
+                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-orange-50/85">Market conditions are experiencing elevated volatility. Please review your investment and available withdrawal options within 48 hours. Any liquidation or adjustment will occur only in accordance with the applicable investment terms. Contact support if you have questions.</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {highMarketVolatilityInvestments.map((investment) => (
+                          <span key={investment.id} className="inline-flex items-center rounded-md border border-orange-200/20 bg-black/20 px-2.5 py-1 text-xs font-semibold text-orange-50">
+                            {investment.planName}{investment.highMarketVolatilityDeadline ? " · Due " + format(new Date(investment.highMarketVolatilityDeadline), "MMM d, h:mm a") : ""}
                           </span>
                         ))}
                       </div>
