@@ -18,8 +18,6 @@ export interface Investment {
   durationDays: number;
   status: InvestmentStatus;
   slowSignalActive: boolean;
-  highMarketVolatilityActive: boolean;
-  highMarketVolatilityDeadline: string | null;
   startDate: string;
   endDate: string;
   profitEarned: number;
