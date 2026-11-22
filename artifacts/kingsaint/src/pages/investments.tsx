@@ -91,29 +91,29 @@ export default function Investments() {
                   <CardContent>
 
                     {inv.slowSignalActive && (
-                      <div role="alert" className="relative isolate mb-5 overflow-hidden rounded-xl border border-red-500/55 bg-gradient-to-br from-[#3b080d] via-[#21070b] to-[#12070a] p-4 text-red-50 shadow-[0_10px_30px_rgba(220,38,38,0.16)] md:p-5">
-                        <div aria-hidden="true" className="pointer-events-none absolute -right-7 -top-9 h-36 w-36 rounded-full border border-red-400/10">
-                          <div className="absolute inset-4 rounded-full border border-red-400/15">
-                            <div className="absolute inset-4 rounded-full border border-red-400/20" />
+                      <div role="alert" className="relative isolate mb-5 overflow-hidden rounded-xl border border-orange-500/55 bg-gradient-to-br from-[#3b1c08] via-[#241207] to-[#120a06] p-4 text-orange-50 shadow-[0_10px_30px_rgba(249,115,22,0.16)] md:p-5">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-7 -top-9 h-36 w-36 rounded-full border border-orange-400/10">
+                          <div className="absolute inset-4 rounded-full border border-orange-400/15">
+                            <div className="absolute inset-4 rounded-full border border-orange-400/20" />
                           </div>
                         </div>
-                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-red-500/[0.08] to-transparent" />
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-orange-500/[0.08] to-transparent" />
                         <div className="relative flex items-start gap-3 md:gap-4">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-300 shadow-[inset_0_0_18px_rgba(248,113,113,0.12)] md:h-12 md:w-12">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-400/30 bg-orange-500/15 text-orange-300 shadow-[inset_0_0_18px_rgba(253,186,116,0.12)] md:h-12 md:w-12">
                             <div className="relative">
                               <AlertTriangle className="h-6 w-6" strokeWidth={2.2} />
-                              <span className="absolute -right-2 -top-2 h-2 w-2 animate-pulse rounded-full bg-red-400 ring-4 ring-red-500/15" />
+                              <span className="absolute -right-2 -top-2 h-2 w-2 animate-pulse rounded-full bg-orange-400 ring-4 ring-orange-500/15" />
                             </div>
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/80">Investment status alert</span>
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-200">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" /> Attention
+                              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300/80">Investment status alert</span>
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-400/25 bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-200">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400" /> Attention
                               </span>
                             </div>
-                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">WEAK SIGNAL <span className="text-red-300">MODE</span></p>
-                            <p className="mt-2 text-sm leading-relaxed text-red-100/85">Weak Signal Mode is enabled for this investment. Its maturity date may be affected. For information about the reason and expected timeline, please contact our support team.</p>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-wide text-white md:text-xl">WEAK SIGNAL <span className="text-orange-300">MODE</span></p>
+                            <p className="mt-2 text-sm leading-relaxed text-orange-100/85">Weak Signal Mode is enabled for this investment. Its maturity date may be affected. For information about the reason and expected timeline, please contact our support team.</p>
                           </div>
                         </div>
                       </div>
