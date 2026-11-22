@@ -19,6 +19,8 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   balance: number;
+  highMarketVolatilityActive: boolean;
+  highMarketVolatilityDeadline: string | null;
   totalInvested: number;
   totalProfit: number;
   referralCode: string;
