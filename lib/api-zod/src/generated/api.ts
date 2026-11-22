@@ -497,8 +497,6 @@ export const GetAdminUserResponse = zod.object({
   "durationDays": zod.number(),
   "status": zod.enum(['active', 'completed', 'cancelled']),
   "slowSignalActive": zod.boolean(),
-  "highMarketVolatilityActive": zod.boolean(),
-  "highMarketVolatilityDeadline": zod.string().nullable(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "profitEarned": zod.number(),
