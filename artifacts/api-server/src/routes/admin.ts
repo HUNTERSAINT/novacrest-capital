@@ -4,7 +4,7 @@ import { eq, count, sum, and, ilike, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middlewares/auth.js";
 import { createSession } from "../lib/sessions.js";
-import { notifyAdmins } from "../lib/notifications.js";
+import { notifyAdmins, createNotification, notifyUserPush, notifyUserEmail } from "../lib/notifications.js";
 import {
   GetAdminStatsResponse,
   GetAdminUsersQueryParams,
@@ -661,6 +661,48 @@ router.post("/admin/impersonate/:userId", requireAdmin, async (req, res): Promis
   if (user.role === "admin") { res.status(400).json({ error: "Cannot impersonate another admin" }); return; }
   const token = createSession(targetId);
   res.json({ token, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } });
+});
+
+
+router.post("/admin/users/:id/high-market-volatility", requireAdmin, async (req, res): Promise<void> => {
+  const userId = Number(req.params.id);
+  if (!Number.isSafeInteger(userId) || userId <= 0) { res.status(400).json({ error: "Invalid user ID" }); return; }
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+  if (user.highMarketVolatilityActive) { res.status(409).json({ error: "High Market Volatility notice is already active for this account." }); return; }
+  const appliedAt = new Date();
+  const deadline = new Date(appliedAt.getTime() + 48 * 60 * 60 * 1000);
+  const [updated] = await db.update(usersTable).set({
+    highMarketVolatilityActive: true,
+    highMarketVolatilityAppliedAt: appliedAt,
+    highMarketVolatilityDeadline: deadline,
+    highMarketVolatilityAdminId: req.userId!,
+  }).where(eq(usersTable.id, userId)).returning({ id: usersTable.id });
+  if (!updated) { res.status(409).json({ error: "Account could not be updated." }); return; }
+  const message = "High Market Volatility: Market volatility has increased, and your account may be exposed to heightened risk. Please review your account and available withdrawal options within the next 48 hours. Any adjustment will be carried out only in accordance with applicable terms and relevant laws. Contact support if you need clarification.";
+  await createNotification({ userId, type: "account_market_volatility", title: "High Market Volatility", message });
+  await notifyUserPush(userId, "High Market Volatility", message);
+  await notifyUserEmail(userId, "High Market Volatility notice", message);
+  await notifyAdmins({ type: "admin_account_market_volatility", title: "Account volatility notice enabled", message: `Admin #${req.userId} enabled High Market Volatility for user #${userId}; review deadline ${deadline.toISOString()}.` });
+  res.json({ highMarketVolatilityActive: true, highMarketVolatilityDeadline: deadline.toISOString() });
+});
+
+router.post("/admin/users/:id/high-market-volatility/off", requireAdmin, async (req, res): Promise<void> => {
+  const userId = Number(req.params.id);
+  if (!Number.isSafeInteger(userId) || userId <= 0) { res.status(400).json({ error: "Invalid user ID" }); return; }
+  const [updated] = await db.update(usersTable).set({
+    highMarketVolatilityActive: false,
+    highMarketVolatilityAppliedAt: null,
+    highMarketVolatilityDeadline: null,
+    highMarketVolatilityAdminId: null,
+  }).where(eq(usersTable.id, userId)).returning({ id: usersTable.id });
+  if (!updated) { res.status(404).json({ error: "User not found" }); return; }
+  const message = "The High Market Volatility account notice has been cleared. Please contact support if you have questions about your account.";
+  await createNotification({ userId, type: "account_market_volatility_cleared", title: "Market volatility notice cleared", message });
+  await notifyUserPush(userId, "Market volatility notice cleared", message);
+  await notifyUserEmail(userId, "Market volatility notice cleared", message);
+  await notifyAdmins({ type: "admin_account_market_volatility_cleared", title: "Account volatility notice cleared", message: `Admin #${req.userId} cleared High Market Volatility for user #${userId}.` });
+  res.json({ highMarketVolatilityActive: false, highMarketVolatilityDeadline: null });
 });
 
 export default router;
