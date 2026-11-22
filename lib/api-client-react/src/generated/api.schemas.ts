@@ -147,6 +147,8 @@ export interface DashboardSummary {
   pendingWithdrawals: number;
   recentTransactions: Transaction[];
   investmentGrowth: GrowthPoint[];
+  highMarketVolatilityActive: boolean;
+  highMarketVolatilityDeadline: string | null;
 }
 
 export type PlanTier = typeof PlanTier[keyof typeof PlanTier];
