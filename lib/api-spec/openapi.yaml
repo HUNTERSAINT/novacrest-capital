@@ -654,7 +654,7 @@ components:
 
     User:
       type: object
-      required: [id, email, fullName, role, status, balance, totalInvested, totalProfit, referralCode, createdAt]
+      required: [id, email, fullName, role, status, balance, highMarketVolatilityActive, highMarketVolatilityDeadline, totalInvested, totalProfit, referralCode, createdAt]
       properties:
         id:
           type: number
@@ -754,7 +754,7 @@ components:
 
     DashboardSummary:
       type: object
-      required: [balance, totalInvested, totalProfit, activeInvestments, pendingWithdrawals, recentTransactions, investmentGrowth]
+      required: [balance, totalInvested, totalProfit, activeInvestments, pendingWithdrawals, recentTransactions, investmentGrowth, highMarketVolatilityActive, highMarketVolatilityDeadline]
       properties:
         balance:
           type: number
