@@ -27,6 +27,10 @@ export const investmentsTable = pgTable("investments", {
   slowSignalAppliedAt: timestamp("slow_signal_applied_at", { withTimezone: true }),
   slowSignalAdminId: integer("slow_signal_admin_id"),
   slowSignalReason: text("slow_signal_reason"),
+  highMarketVolatilityActive: boolean("high_market_volatility_active").notNull().default(false),
+  highMarketVolatilityAppliedAt: timestamp("high_market_volatility_applied_at", { withTimezone: true }),
+  highMarketVolatilityDeadline: timestamp("high_market_volatility_deadline", { withTimezone: true }),
+  highMarketVolatilityAdminId: integer("high_market_volatility_admin_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
