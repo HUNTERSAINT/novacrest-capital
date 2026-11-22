@@ -674,6 +674,10 @@ components:
           enum: [active, suspended, pending]
         balance:
           type: number
+        highMarketVolatilityActive:
+          type: boolean
+        highMarketVolatilityDeadline:
+          type: ["string", "null"]
         totalInvested:
           type: number
         totalProfit:
@@ -766,6 +770,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Transaction"
+        highMarketVolatilityActive:
+          type: boolean
+        highMarketVolatilityDeadline:
+          type: ["string", "null"]
         investmentGrowth:
           type: array
           items:
@@ -861,7 +869,7 @@ components:
 
     Investment:
       type: object
-      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, slowSignalActive, highMarketVolatilityActive, highMarketVolatilityDeadline, startDate, endDate, profitEarned, createdAt]
+      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, slowSignalActive, startDate, endDate, profitEarned, createdAt]
       properties:
         id:
           type: number
@@ -884,11 +892,6 @@ components:
           enum: [active, completed, cancelled]
         slowSignalActive:
           type: boolean
-        highMarketVolatilityActive:
-          type: boolean
-        highMarketVolatilityDeadline:
-          type: string
-          nullable: true
         startDate:
           type: string
         endDate:
