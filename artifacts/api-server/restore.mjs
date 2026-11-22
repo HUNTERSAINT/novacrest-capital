@@ -65,23 +65,38 @@ async function syncConfiguredAdminPassword() {
 }
 
 async function main() {
-  // ── Step 1: Push schema (idempotent — safe on every deploy) ─────────────────
-  console.log("📐  Pushing database schema…");
+  await client.connect();
+
   try {
-    execSync("pnpm --filter @workspace/db run push", {
+    // Apply the data-preserving account-level notice migration before Drizzle
+    // removes the obsolete investment-level columns.
+    console.log("🛡️  Applying account-level High Market Volatility migration…");
+    const migrationPath = path.join(ROOT, "lib/db/migrations/0002_account_high_market_volatility.sql");
+    const migrationSql = readFileSync(migrationPath, "utf8");
+    const legacyColumns = await client.query(
+      `SELECT COUNT(*)::int AS count
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'investments'
+          AND column_name = 'high_market_volatility_active'`
+    );
+
+    if (legacyColumns.rows[0].count > 0) {
+      await client.query(migrationSql);
+    } else {
+      // The old investment columns may already have been removed by a prior
+      // schema sync; still ensure the account-level columns exist.
+      await client.query(migrationSql.split("-- Carry forward any existing active investment-level notices to the account.")[0]);
+    }
+
+    console.log("📐  Pushing database schema non-interactively…");
+    execSync("pnpm --filter @workspace/db run push-force", {
       cwd: ROOT,
       stdio: "inherit",
       env: { ...process.env },
     });
     console.log("✅  Schema up to date.");
-  } catch (err) {
-    console.error("❌  Schema push failed:", err.message);
-    process.exit(1);
-  }
 
-  await client.connect();
-
-  try {
     // ── Step 2: Check if database already has data ───────────────────────────
     const { rows } = await client.query(
       "SELECT COUNT(*)::int AS n FROM public.users"
