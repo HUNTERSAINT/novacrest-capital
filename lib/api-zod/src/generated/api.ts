@@ -44,6 +44,8 @@ export const RegisterResponse = zod.object({
   "role": zod.enum(['user', 'admin']),
   "status": zod.enum(['active', 'suspended', 'pending']),
   "balance": zod.number(),
+  "highMarketVolatilityActive": zod.boolean(),
+  "highMarketVolatilityDeadline": zod.string().nullable(),
   "totalInvested": zod.number(),
   "totalProfit": zod.number(),
   "referralCode": zod.string(),
@@ -182,6 +184,8 @@ export const GetDashboardResponse = zod.object({
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })),
+  "highMarketVolatilityActive": zod.boolean(),
+  "highMarketVolatilityDeadline": zod.string().nullable(),
   "investmentGrowth": zod.array(zod.object({
   "date": zod.string(),
   "value": zod.number()
