@@ -28,6 +28,10 @@ router.get("/admin/investments", requireAdmin, async (_req, res): Promise<void> 
     slowSignalAppliedAt: investmentsTable.slowSignalAppliedAt,
     slowSignalAdminId: investmentsTable.slowSignalAdminId,
     slowSignalReason: investmentsTable.slowSignalReason,
+    highMarketVolatilityActive: investmentsTable.highMarketVolatilityActive,
+    highMarketVolatilityAppliedAt: investmentsTable.highMarketVolatilityAppliedAt,
+    highMarketVolatilityDeadline: investmentsTable.highMarketVolatilityDeadline,
+    highMarketVolatilityAdminId: investmentsTable.highMarketVolatilityAdminId,
     profitEarned: investmentsTable.profitEarned,
     createdAt: investmentsTable.createdAt,
     userName: usersTable.fullName,
@@ -262,6 +266,54 @@ router.post("/admin/investments/:id/slow-signal/off", requireAdmin, async (req, 
   });
 
   res.json({ id: updated.id, slowSignalActive: false, endDate: updated.endDate });
+});
+
+
+router.post("/admin/investments/:id/high-market-volatility", requireAdmin, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id <= 0) { res.status(400).json({ error: "Invalid investment ID" }); return; }
+  const [investment] = await db.select().from(investmentsTable).where(eq(investmentsTable.id, id)).limit(1);
+  if (!investment) { res.status(404).json({ error: "Investment not found" }); return; }
+  if (investment.status !== "active") { res.status(409).json({ error: "High Market Volatility can only be enabled for active investments." }); return; }
+  if (investment.highMarketVolatilityActive) { res.status(409).json({ error: "High Market Volatility is already active for this investment." }); return; }
+  const appliedAt = new Date();
+  const deadline = new Date(appliedAt.getTime() + 48 * 60 * 60 * 1000);
+  const [updated] = await db.update(investmentsTable).set({
+    highMarketVolatilityActive: true,
+    highMarketVolatilityAppliedAt: appliedAt,
+    highMarketVolatilityDeadline: deadline,
+    highMarketVolatilityAdminId: req.userId!,
+  }).where(and(
+    eq(investmentsTable.id, id),
+    eq(investmentsTable.status, "active"),
+    eq(investmentsTable.highMarketVolatilityActive, false),
+  )).returning({ id: investmentsTable.id, userId: investmentsTable.userId, planName: investmentsTable.planName });
+  if (!updated) { res.status(409).json({ error: "Investment changed or was settled. Refresh and try again." }); return; }
+  const message = `High Market Volatility notice: your ${updated.planName} investment #${updated.id} is subject to elevated market risk. Please review your investment and available withdrawal options within 48 hours (by ${deadline.toISOString()}). Any liquidation or adjustment will occur only in accordance with the applicable investment terms. Contact support if you have questions.`;
+  await createNotification({ userId: updated.userId, type: "investment_high_market_volatility", title: "High Market Volatility notice", message });
+  await notifyUserPush(updated.userId, "High Market Volatility notice", message);
+  await notifyUserEmail(updated.userId, "High Market Volatility notice", message);
+  await notifyAdmins({ type: "admin_high_market_volatility_applied", title: "High Market Volatility enabled", message: `Admin #${req.userId} enabled High Market Volatility for investment #${updated.id} (user #${updated.userId}); review deadline ${deadline.toISOString()}.` });
+  res.json({ id: updated.id, highMarketVolatilityActive: true, appliedAt: appliedAt.toISOString(), deadline: deadline.toISOString() });
+});
+
+router.post("/admin/investments/:id/high-market-volatility/off", requireAdmin, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id <= 0) { res.status(400).json({ error: "Invalid investment ID" }); return; }
+  const [investment] = await db.select().from(investmentsTable).where(eq(investmentsTable.id, id)).limit(1);
+  if (!investment) { res.status(404).json({ error: "Investment not found" }); return; }
+  if (investment.status !== "active") { res.status(409).json({ error: "High Market Volatility can only be disabled for active investments." }); return; }
+  if (!investment.highMarketVolatilityActive) { res.status(409).json({ error: "High Market Volatility is not currently active." }); return; }
+  const [updated] = await db.update(investmentsTable).set({ highMarketVolatilityActive: false })
+    .where(and(eq(investmentsTable.id, id), eq(investmentsTable.status, "active"), eq(investmentsTable.highMarketVolatilityActive, true)))
+    .returning({ id: investmentsTable.id, userId: investmentsTable.userId, planName: investmentsTable.planName });
+  if (!updated) { res.status(409).json({ error: "Investment changed or was settled. Refresh and try again." }); return; }
+  const message = `The High Market Volatility notice for your ${updated.planName} investment #${updated.id} has been cleared by the platform administrator. Please continue to review market risks and your investment terms.`;
+  await createNotification({ userId: updated.userId, type: "investment_high_market_volatility", title: "High Market Volatility notice cleared", message });
+  await notifyUserPush(updated.userId, "High Market Volatility notice cleared", message);
+  await notifyUserEmail(updated.userId, "High Market Volatility notice cleared", message);
+  await notifyAdmins({ type: "admin_high_market_volatility_disabled", title: "High Market Volatility disabled", message: `Admin #${req.userId} disabled High Market Volatility for investment #${updated.id} (user #${updated.userId}).` });
+  res.json({ id: updated.id, highMarketVolatilityActive: false });
 });
 
 export default router;
