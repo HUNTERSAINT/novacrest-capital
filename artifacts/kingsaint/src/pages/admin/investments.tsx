@@ -15,6 +15,8 @@ type InvestmentRow = {
   slowSignalApplied: boolean; slowSignalActive: boolean; slowSignalDays: number | null;
   slowSignalOriginalEndDate: string | null; slowSignalAppliedAt: string | null;
   slowSignalAdminId: number | null; slowSignalReason: string | null;
+  highMarketVolatilityActive: boolean; highMarketVolatilityAppliedAt: string | null;
+  highMarketVolatilityDeadline: string | null; highMarketVolatilityAdminId: number | null;
 };
 type PlanGroup = {
   planId: number; planName: string; totalAmount: number; investmentCount: number;
@@ -118,6 +120,40 @@ export default function AdminInvestments() {
     }
   };
 
+  const applyHighMarketVolatility = async (row: InvestmentRow) => {
+    if (row.highMarketVolatilityActive) return;
+    if (!window.confirm(`Enable High Market Volatility notice for investment #${row.id}? The user will receive a 48-hour review notice and a notification.`)) return;
+    setSlowSignalSavingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/investments/${row.id}/high-market-volatility`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` }, body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not enable High Market Volatility");
+      toast({ title: "High Market Volatility enabled", description: `48-hour review deadline: ${new Date(result.deadline).toLocaleString()}.` });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Could not enable notice", description: error instanceof Error ? error.message : "Please try again." });
+    } finally { setSlowSignalSavingId(null); }
+  };
+
+  const turnOffHighMarketVolatility = async (row: InvestmentRow) => {
+    if (!row.highMarketVolatilityActive) return;
+    if (!window.confirm(`Clear High Market Volatility notice for investment #${row.id}? The user will be notified.`)) return;
+    setSlowSignalSavingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/investments/${row.id}/high-market-volatility/off`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` }, body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not clear High Market Volatility");
+      toast({ title: "High Market Volatility cleared", description: `Investment #${row.id} notice cleared.` });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Could not clear notice", description: error instanceof Error ? error.message : "Please try again." });
+    } finally { setSlowSignalSavingId(null); }
+  };
+
   const turnOffSlowSignal = async (row: InvestmentRow) => {
     if (!row.slowSignalActive) return;
     if (!window.confirm(`Turn off Slow Signal Mode for investment #${row.id}? Its maturity date will be restored to the original date and the user will be notified.`)) return;
@@ -199,7 +235,7 @@ export default function AdminInvestments() {
               <tr>
                 <th className="text-left p-3">Investor</th><th className="text-left p-3">Plan</th>
                 <th className="text-right p-3">Amount</th><th className="text-left p-3">Started</th>
-                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity date & time</th><th className="text-left p-3">Slow Signal Mode</th>
+                <th className="text-left p-3">Matures</th><th className="text-left p-3">Status</th><th className="text-left p-3">Update maturity date & time</th><th className="text-left p-3">Weak Signal Mode</th><th className="text-left p-3">High Market Volatility</th>
               </tr>
             </thead>
             <tbody>
@@ -241,9 +277,23 @@ export default function AdminInvestments() {
                       </Button>
                     ) : <span className="text-xs text-muted-foreground">Unavailable</span>}
                   </td>
+                  <td className="p-3">
+                    {row.highMarketVolatilityActive ? (
+                      <div className="space-y-1 min-w-48">
+                        <Badge variant="outline" className="border-red-500/30 text-red-200">Active · 48-hour notice</Badge>
+                        <p className="text-xs text-muted-foreground">Deadline: {row.highMarketVolatilityDeadline ? new Date(row.highMarketVolatilityDeadline).toLocaleString() : "—"}</p>
+                        <p className="text-xs text-muted-foreground">By admin #{row.highMarketVolatilityAdminId ?? "—"}</p>
+                        {row.status === "active" && <Button size="sm" variant="outline" className="mt-1 border-red-500/30 text-red-200" onClick={() => void turnOffHighMarketVolatility(row)} disabled={slowSignalSavingId === row.id}>{slowSignalSavingId === row.id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}Clear notice</Button>}
+                      </div>
+                    ) : row.status === "active" ? (
+                      <Button size="sm" variant="outline" className="border-red-500/30 text-red-200" onClick={() => void applyHighMarketVolatility(row)} disabled={slowSignalSavingId === row.id}>
+                        {slowSignalSavingId === row.id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}Enable notice
+                      </Button>
+                    ) : <span className="text-xs text-muted-foreground">Unavailable</span>}
+                  </td>
                 </tr>
               ))}
-              {visibleRows.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No investments in this view.</td></tr>}
+              {visibleRows.length === 0 && <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No investments in this view.</td></tr>}
             </tbody>
           </table>
         </div>
