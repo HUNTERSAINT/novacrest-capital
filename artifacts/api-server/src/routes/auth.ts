@@ -180,6 +180,8 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     role: user.role,
     status: user.status,
     balance: user.balance,
+    highMarketVolatilityActive: Boolean(user.highMarketVolatilityActive),
+    highMarketVolatilityDeadline: user.highMarketVolatilityDeadline?.toISOString() ?? null,
     totalInvested: user.totalInvested,
     totalProfit: user.totalProfit,
     referralCode: user.referralCode,
