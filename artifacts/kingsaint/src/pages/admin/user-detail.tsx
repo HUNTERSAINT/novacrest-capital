@@ -69,6 +69,20 @@ export default function AdminUserDetail() {
     },
   });
 
+  const highMarketVolatilityMutation = useMutation({
+    mutationFn: async (enable: boolean) => {
+      const route = enable
+        ? `/api/admin/users/${userId}/high-market-volatility`
+        : `/api/admin/users/${userId}/high-market-volatility/off`;
+      return customFetch<{ highMarketVolatilityActive: boolean; highMarketVolatilityDeadline: string | null }>(route, { method: "POST" });
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries();
+      toast({ title: result.highMarketVolatilityActive ? "High Market Volatility enabled" : "Notice cleared", description: result.highMarketVolatilityDeadline ? `Account review deadline: ${new Date(result.highMarketVolatilityDeadline).toLocaleString()}.` : "The account-level notice is now off." });
+    },
+    onError: (err: Error) => toast({ variant: "destructive", title: "Could not update notice", description: err.message }),
+  });
+
   const creditMutation = useCreditUser({
     mutation: {
       onSuccess: () => {
@@ -220,6 +234,29 @@ export default function AdminUserDetail() {
               <p>Joined: {format(new Date(user.createdAt), "MMMM d, yyyy")}</p>
               {user.country && <p>Country: {user.country}</p>}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Account-level market notice */}
+        <Card className="bg-card border-orange-500/20 rounded-sm">
+          <CardHeader>
+            <CardTitle className="font-serif text-lg text-white flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-orange-300" /> High Market Volatility
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">This notice applies to the user's account, not to any individual investment.</p>
+            <Badge className={user.highMarketVolatilityActive ? "bg-orange-500/10 text-orange-200 border border-orange-400/30" : "bg-white/5 text-muted-foreground border border-white/10"}>
+              {user.highMarketVolatilityActive ? "Active · 48-hour review" : "Not active"}
+            </Badge>
+            {user.highMarketVolatilityActive && user.highMarketVolatilityDeadline && <p className="text-xs text-orange-100/80">Review deadline: {format(new Date(user.highMarketVolatilityDeadline), "MMM d, yyyy 'at' h:mm a")}</p>}
+            <Button
+              onClick={() => highMarketVolatilityMutation.mutate(!user.highMarketVolatilityActive)}
+              disabled={highMarketVolatilityMutation.isPending}
+              className={user.highMarketVolatilityActive ? "w-full bg-white/5 text-orange-200 border border-orange-400/25 hover:bg-orange-500/10 rounded-sm" : "w-full bg-orange-500/10 text-orange-200 border border-orange-400/25 hover:bg-orange-500/20 rounded-sm"}
+            >
+              {highMarketVolatilityMutation.isPending ? "Updating..." : user.highMarketVolatilityActive ? "Clear account notice" : "Enable account notice"}
+            </Button>
           </CardContent>
         </Card>
 
