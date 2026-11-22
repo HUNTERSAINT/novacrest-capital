@@ -16,4 +16,6 @@ export interface DashboardSummary {
   pendingWithdrawals: number;
   recentTransactions: Transaction[];
   investmentGrowth: GrowthPoint[];
+  highMarketVolatilityActive: boolean;
+  highMarketVolatilityDeadline: string | null;
 }
