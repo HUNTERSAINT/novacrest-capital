@@ -111,6 +111,7 @@ export default function Deposit() {
   const [submitted, setSubmitted] = useState(false);
   const [proofPath, setProofPath] = useState<string | null>(null);
   const [demoBankAmount, setDemoBankAmount] = useState("");
+  const [submittedDemo, setSubmittedDemo] = useState(false);
 
   const {
     data: fetchedWallets,
@@ -131,9 +132,9 @@ export default function Deposit() {
       onSuccess: () => {
         setSubmitted(true);
         queryClient.invalidateQueries();
-        toast({ title: "Deposit request submitted", description: "Your deposit will be confirmed within 30–60 minutes." });
+        toast({ title: submittedDemo ? "Demo request submitted" : "Deposit request submitted", description: submittedDemo ? "This is a simulated request only; no funds or balance are affected." : "Your deposit will be confirmed within 30–60 minutes." });
       },
-      onError: (err) => toast({ variant: "destructive", title: "Error", description: err.message }),
+      onError: (err) => { setSubmittedDemo(false); toast({ variant: "destructive", title: "Error", description: err.message }); },
     },
   });
 
@@ -166,7 +167,7 @@ export default function Deposit() {
         </div>
         <h2 className="text-2xl font-serif text-white mb-2">Request Submitted</h2>
         <p className="text-muted-foreground text-sm">
-          Your deposit has been recorded. Our team will confirm it within 30–60 minutes.
+          {submittedDemo ? "This DEMO bank deposit request has been recorded for demonstration only. No payment was made and your balance will not change." : "Your deposit has been recorded. Our team will confirm it within 30–60 minutes."}
           {proofPath && " Your payment proof has been uploaded successfully."}
         </p>
       </motion.div>
@@ -196,7 +197,7 @@ export default function Deposit() {
             <label htmlFor="demo-bank-amount" className="text-sm text-white/80 block mb-1.5">Demo amount (USD)</label>
             <Input id="demo-bank-amount" type="number" min="1" step="0.01" value={demoBankAmount} onChange={e => setDemoBankAmount(e.target.value)} placeholder="Enter amount for demonstration" className="bg-background/50 border-white/10 text-white rounded-sm h-12" />
           </div>
-          <Button type="button" variant="outline" className="w-full border-amber-500/30 text-amber-200 hover:bg-amber-500/10" disabled={mutation.isPending || !Number.isFinite(Number(demoBankAmount)) || Number(demoBankAmount) <= 0} onClick={() => mutation.mutate({ data: { type: "deposit", amount: Number(demoBankAmount), cryptoType: "DEMO-BANK", walletAddress: "DEMO_BANK_ONLY", notes: "DEMO BANK DEPOSIT — simulated request only; no funds received and no balance credit." } as any })}>
+          <Button type="button" variant="outline" className="w-full border-amber-500/30 text-amber-200 hover:bg-amber-500/10" disabled={mutation.isPending || !Number.isFinite(Number(demoBankAmount)) || Number(demoBankAmount) <= 0} onClick={() => { setSubmittedDemo(true); mutation.mutate({ data: { type: "deposit", amount: Number(demoBankAmount), cryptoType: "DEMO-BANK", walletAddress: "DEMO_BANK_ONLY", notes: "DEMO BANK DEPOSIT — simulated request only; no funds received and no balance credit." } as any }); }}>
             {mutation.isPending ? "Submitting demo…" : "Submit Bank Deposit Demo"}
           </Button>
         </CardContent>
