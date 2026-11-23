@@ -132,7 +132,7 @@ export default function Deposit() {
       onSuccess: () => {
         setSubmitted(true);
         queryClient.invalidateQueries();
-        toast({ title: submittedDemo ? "Demo request submitted" : "Deposit request submitted", description: submittedDemo ? "This is a simulated request only; no funds or balance are affected." : "Your deposit will be confirmed within 30–60 minutes." });
+        toast({ title: submittedDemo ? "Demo request submitted" : "Deposit request submitted", description: submittedDemo ? "This is a simulated request; demo funds will be credited only if admin approves." : "Your deposit will be confirmed within 30–60 minutes." });
       },
       onError: (err) => { setSubmittedDemo(false); toast({ variant: "destructive", title: "Error", description: err.message }); },
     },
@@ -167,7 +167,7 @@ export default function Deposit() {
         </div>
         <h2 className="text-2xl font-serif text-white mb-2">Request Submitted</h2>
         <p className="text-muted-foreground text-sm">
-          {submittedDemo ? "This DEMO bank deposit request has been recorded for demonstration only. No payment was made and your balance will not change." : "Your deposit has been recorded. Our team will confirm it within 30–60 minutes."}
+          {submittedDemo ? "This DEMO bank deposit request has been recorded. If admin approves it, demo funds will be added to your displayed balance. No payment was made." : "Your deposit has been recorded. Our team will confirm it within 30–60 minutes."}
           {proofPath && " Your payment proof has been uploaded successfully."}
         </p>
       </motion.div>
@@ -189,7 +189,7 @@ export default function Deposit() {
             Bank Deposit <span className="text-[10px] px-2 py-0.5 rounded border border-amber-500/40 text-amber-300 font-semibold tracking-wide">DEMO</span>
           </CardTitle>
           <CardDescription className="text-amber-200/80">
-            Demonstration only. No bank transfer details or real payment are involved. Admin approval will not change any balance.
+            Demonstration only. No bank transfer details or real payment are involved. When admin approves, demo funds are added to the displayed balance. No real payment is received.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
