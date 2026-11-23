@@ -13,4 +13,5 @@ export interface TransactionInput {
   cryptoType: string;
   walletAddress?: string;
   txHash?: string;
+  proofUrl?: string;
 }
