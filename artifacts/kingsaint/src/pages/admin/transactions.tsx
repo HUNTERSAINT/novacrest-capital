@@ -88,6 +88,8 @@ export default function AdminTransactions() {
                       {tx.userFullName ?? "Unknown"} · {tx.userEmail ?? ""}
                     </p>
                     {tx.notes && <p className="text-xs text-muted-foreground mt-0.5 italic">{tx.notes}</p>}
+                    {tx.type === "deposit" && tx.proofUrl && <a href={tx.proofUrl} target="_blank" rel="noreferrer" className="inline-flex mt-2 text-xs font-semibold text-primary underline underline-offset-2">View transaction screenshot / receipt</a>}
+                    {tx.type === "deposit" && !tx.proofUrl && tx.walletAddress !== "DEMO_BANK_ONLY" && <p className="text-xs text-red-400 mt-2 font-semibold">Missing payment proof — do not approve</p>}
                     <p className="text-xs text-muted-foreground mt-1">{format(new Date(tx.createdAt), "MMM d, yyyy · h:mm a")}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
