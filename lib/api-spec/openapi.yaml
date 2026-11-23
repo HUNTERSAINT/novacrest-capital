@@ -943,6 +943,8 @@ components:
           type: ["string", "null"]
         notes:
           type: ["string", "null"]
+        proofUrl:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -962,6 +964,8 @@ components:
         walletAddress:
           type: string
         txHash:
+          type: string
+        proofUrl:
           type: string
 
     RejectInput:
