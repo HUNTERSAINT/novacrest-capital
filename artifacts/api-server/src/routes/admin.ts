@@ -262,15 +262,18 @@ router.post("/admin/transactions/:id/approve", requireAdmin, async (req, res): P
     .where(eq(transactionsTable.id, params.data.id))
     .returning();
 
+  // Demo bank approvals change only the demo request status; never alter a real balance.
+  const isDemoBankDeposit = tx.type === "deposit" && tx.walletAddress === "DEMO_BANK_ONLY";
+
   // If withdrawal approved, deduct from balance
-  if (tx.type === "withdrawal") {
+  if (tx.type === "withdrawal" && !isDemoBankDeposit) {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, tx.userId));
     if (user) {
       await db.update(usersTable).set({ balance: Math.max(0, user.balance - tx.amount) }).where(eq(usersTable.id, tx.userId));
     }
   }
   // If deposit approved, add to balance
-  if (tx.type === "deposit") {
+  if (tx.type === "deposit" && !isDemoBankDeposit) {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, tx.userId));
     if (user) {
       await db.update(usersTable).set({ balance: user.balance + tx.amount }).where(eq(usersTable.id, tx.userId));
@@ -282,7 +285,7 @@ router.post("/admin/transactions/:id/approve", requireAdmin, async (req, res): P
     userId: tx.userId,
     type: tx.type === "deposit" ? "deposit_approved" : "withdrawal_approved",
     title: tx.type === "deposit" ? "Deposit Approved" : "Withdrawal Approved",
-    message: `Your ${tx.type} of $${tx.amount.toLocaleString()} has been approved.`,
+    message: isDemoBankDeposit ? `Your DEMO bank deposit request of ${tx.amount.toLocaleString()} was approved for demonstration only. No funds were received and your balance was not changed.` : `Your ${tx.type} of ${tx.amount.toLocaleString()} has been approved.`,
   }).catch(() => {});
 
   res.json(ApproveTransactionResponse.parse(formatTransaction(updated)));
