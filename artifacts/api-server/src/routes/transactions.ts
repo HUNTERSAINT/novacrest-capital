@@ -32,6 +32,7 @@ function formatTransaction(tx: typeof transactionsTable.$inferSelect, userEmail?
     walletAddress: tx.walletAddress ?? null,
     txHash: tx.txHash ?? null,
     notes: tx.notes ?? null,
+    proofUrl: tx.proofUrl ?? null,
     createdAt: tx.createdAt.toISOString(),
     updatedAt: tx.updatedAt.toISOString(),
   };
@@ -68,6 +69,13 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const proofUrl = typeof (req.body as { proofUrl?: unknown }).proofUrl === "string" ? (req.body as { proofUrl: string }).proofUrl.trim() : "";
+  const isDemoBankDeposit = parsed.data.type === "deposit" && parsed.data.walletAddress === "DEMO_BANK_ONLY";
+  if (parsed.data.type === "deposit" && !isDemoBankDeposit && !proofUrl) {
+    res.status(400).json({ error: "Upload a transaction screenshot or payment receipt before submitting your deposit." });
+    return;
+  }
+
   const [tx] = await db.insert(transactionsTable).values({
     userId: req.userId!,
     type: parsed.data.type,
@@ -77,7 +85,7 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
     walletAddress: parsed.data.walletAddress,
     txHash: parsed.data.txHash,
     notes: parsed.data.notes ?? null,
-    proofUrl: (req.body as { proofUrl?: string }).proofUrl ?? null,
+    proofUrl: proofUrl || null,
   }).returning();
 
   // Notify admins of deposit or withdrawal request
