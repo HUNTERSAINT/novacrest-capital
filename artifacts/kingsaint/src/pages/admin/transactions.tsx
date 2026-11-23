@@ -34,7 +34,7 @@ export default function AdminTransactions() {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries();
-        toast({ title: "Transaction approved", description: "Request status updated. Demo bank requests never change balances." });
+        toast({ title: "Transaction approved", description: "Request status updated. Approved demo deposits credit the displayed demo balance." });
       },
       onError: (err) => toast({ variant: "destructive", title: "Error", description: err.message }),
     },
