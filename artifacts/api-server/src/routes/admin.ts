@@ -272,8 +272,8 @@ router.post("/admin/transactions/:id/approve", requireAdmin, async (req, res): P
       await db.update(usersTable).set({ balance: Math.max(0, user.balance - tx.amount) }).where(eq(usersTable.id, tx.userId));
     }
   }
-  // If deposit approved, add to balance
-  if (tx.type === "deposit" && !isDemoBankDeposit) {
+  // Approved deposits, including explicitly labeled demo bank deposits, credit the displayed balance.
+  if (tx.type === "deposit") {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, tx.userId));
     if (user) {
       await db.update(usersTable).set({ balance: user.balance + tx.amount }).where(eq(usersTable.id, tx.userId));
@@ -285,7 +285,7 @@ router.post("/admin/transactions/:id/approve", requireAdmin, async (req, res): P
     userId: tx.userId,
     type: tx.type === "deposit" ? "deposit_approved" : "withdrawal_approved",
     title: tx.type === "deposit" ? "Deposit Approved" : "Withdrawal Approved",
-    message: isDemoBankDeposit ? `Your DEMO bank deposit request of ${tx.amount.toLocaleString()} was approved for demonstration only. No funds were received and your balance was not changed.` : `Your ${tx.type} of ${tx.amount.toLocaleString()} has been approved.`,
+    message: isDemoBankDeposit ? `Your DEMO bank deposit request of ${tx.amount.toLocaleString()} was approved. Demo funds were added to your displayed balance; no real payment was received.` : `Your ${tx.type} of ${tx.amount.toLocaleString()} has been approved.`,
   }).catch(() => {});
 
   res.json(ApproveTransactionResponse.parse(formatTransaction(updated)));
