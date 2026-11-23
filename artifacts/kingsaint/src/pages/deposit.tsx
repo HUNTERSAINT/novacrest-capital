@@ -110,6 +110,7 @@ export default function Deposit() {
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [proofPath, setProofPath] = useState<string | null>(null);
+  const [demoBankAmount, setDemoBankAmount] = useState("");
 
   const {
     data: fetchedWallets,
@@ -181,6 +182,25 @@ export default function Deposit() {
         </p>
       </div>
 
+      <Card className="bg-card border-amber-500/30 rounded-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-white font-serif text-base flex items-center gap-2">
+            Bank Deposit <span className="text-[10px] px-2 py-0.5 rounded border border-amber-500/40 text-amber-300 font-semibold tracking-wide">DEMO</span>
+          </CardTitle>
+          <CardDescription className="text-amber-200/80">
+            Demonstration only. No bank transfer details or real payment are involved. Admin approval will not change any balance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label htmlFor="demo-bank-amount" className="text-sm text-white/80 block mb-1.5">Demo amount (USD)</label>
+            <Input id="demo-bank-amount" type="number" min="1" step="0.01" value={demoBankAmount} onChange={e => setDemoBankAmount(e.target.value)} placeholder="Enter amount for demonstration" className="bg-background/50 border-white/10 text-white rounded-sm h-12" />
+          </div>
+          <Button type="button" variant="outline" className="w-full border-amber-500/30 text-amber-200 hover:bg-amber-500/10" disabled={mutation.isPending || !Number.isFinite(Number(demoBankAmount)) || Number(demoBankAmount) <= 0} onClick={() => mutation.mutate({ data: { type: "deposit", amount: Number(demoBankAmount), cryptoType: "DEMO-BANK", walletAddress: "DEMO_BANK_ONLY", notes: "DEMO BANK DEPOSIT — simulated request only; no funds received and no balance credit." } as any })}>
+            {mutation.isPending ? "Submitting demo…" : "Submit Bank Deposit Demo"}
+          </Button>
+        </CardContent>
+      </Card>
       {walletsLoading ? (
         <Card className="bg-card border-white/5 rounded-sm">
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
