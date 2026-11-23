@@ -53,7 +53,7 @@ function ProofUpload({ proofPath, onChange }: { proofPath: string | null; onChan
   return (
     <div>
       <p className="text-sm text-white/80 mb-1.5 font-medium">
-        Payment Proof <span className="text-muted-foreground text-xs font-normal">(screenshot / receipt)</span>
+        Payment Proof <span className="text-red-400 text-xs font-semibold">(Required — transaction screenshot / receipt)</span>
       </p>
 
       {proofPath && preview ? (
@@ -90,7 +90,7 @@ function ProofUpload({ proofPath, onChange }: { proofPath: string | null; onChan
               <p className="text-xs text-muted-foreground">
                 <span className="text-primary font-medium">Click to upload</span> or drag & drop
               </p>
-              <p className="text-[11px] text-muted-foreground/60">JPG, PNG, PDF</p>
+              <p className="text-[11px] text-muted-foreground/60">Required: JPG, PNG, or PDF receipt</p>
             </div>
           )}
         </div>
@@ -147,6 +147,10 @@ export default function Deposit() {
 
   const onSubmit = (values: z.infer<typeof schema>) => {
     if (!selectedWallet) return;
+    if (!proofPath) {
+      toast({ variant: "destructive", title: "Payment proof required", description: "Upload a screenshot of your completed transaction or payment receipt before submitting this deposit." });
+      return;
+    }
     mutation.mutate({
       data: {
         type: "deposit",
@@ -336,7 +340,7 @@ export default function Deposit() {
               <Button
                 type="submit"
                 className="w-full h-12 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-                disabled={mutation.isPending || !selectedWallet}
+                disabled={mutation.isPending || !selectedWallet || !proofPath}
               >
                 {mutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : "Confirm Deposit"}
               </Button>
