@@ -76,6 +76,7 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
     cryptoType: parsed.data.cryptoType,
     walletAddress: parsed.data.walletAddress,
     txHash: parsed.data.txHash,
+    notes: parsed.data.notes ?? null,
     proofUrl: (req.body as { proofUrl?: string }).proofUrl ?? null,
   }).returning();
 
