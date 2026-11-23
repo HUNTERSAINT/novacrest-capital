@@ -189,6 +189,7 @@ export const GetDashboardResponse = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })),
@@ -340,6 +341,7 @@ export const GetTransactionsResponseItem = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -354,7 +356,8 @@ export const CreateTransactionBody = zod.object({
   "amount": zod.number(),
   "cryptoType": zod.string(),
   "walletAddress": zod.string().optional(),
-  "txHash": zod.string().optional()
+  "txHash": zod.string().optional(),
+  "proofUrl": zod.string().optional()
 })
 
 export const CreateTransactionResponse = zod.object({
@@ -369,6 +372,7 @@ export const CreateTransactionResponse = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -514,6 +518,7 @@ export const GetAdminUserResponse = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 }))
@@ -591,6 +596,7 @@ export const GetAdminTransactionsResponseItem = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -616,6 +622,7 @@ export const ApproveTransactionResponse = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
@@ -644,6 +651,7 @@ export const RejectTransactionResponse = zod.object({
   "walletAddress": zod.string().nullish(),
   "txHash": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "proofUrl": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
