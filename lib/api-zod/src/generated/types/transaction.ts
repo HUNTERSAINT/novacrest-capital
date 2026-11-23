@@ -25,6 +25,8 @@ export interface Transaction {
   txHash?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  proofUrl?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
