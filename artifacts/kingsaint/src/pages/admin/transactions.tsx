@@ -34,7 +34,7 @@ export default function AdminTransactions() {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries();
-        toast({ title: "Transaction approved", description: "User balance updated." });
+        toast({ title: "Transaction approved", description: "Request status updated. Demo bank requests never change balances." });
       },
       onError: (err) => toast({ variant: "destructive", title: "Error", description: err.message }),
     },
@@ -80,7 +80,8 @@ export default function AdminTransactions() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <span className={`text-sm font-bold uppercase tracking-wide ${typeColor[tx.type] ?? "text-white"}`}>{tx.type}</span>
+                      <span className={`text-sm font-bold uppercase tracking-wide ${typeColor[tx.type] ?? "text-white"}`}>{tx.walletAddress === "DEMO_BANK_ONLY" ? "BANK DEPOSIT DEMO" : tx.type}</span>
+                      {tx.walletAddress === "DEMO_BANK_ONLY" && <Badge className="border-amber-500/40 text-amber-300 bg-amber-500/10">DEMO · no balance credit</Badge>}
                       <span className="text-white font-medium">{fmt(tx.amount)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -138,7 +139,8 @@ export default function AdminTransactions() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className={`font-bold uppercase tracking-wider text-xs ${typeColor[tx.type] ?? "text-white"}`}>{tx.type}</span>
+                      <span className={`font-bold uppercase tracking-wider text-xs ${typeColor[tx.type] ?? "text-white"}`}>{tx.walletAddress === "DEMO_BANK_ONLY" ? "BANK DEPOSIT DEMO" : tx.type}</span>
+                      {tx.walletAddress === "DEMO_BANK_ONLY" && <Badge className="border-amber-500/40 text-amber-300 bg-amber-500/10">DEMO</Badge>}
                       <span className="text-white">{fmt(tx.amount)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
