@@ -69,6 +69,7 @@ function formatTransaction(tx: typeof transactionsTable.$inferSelect, userEmail?
     walletAddress: tx.walletAddress ?? null,
     txHash: tx.txHash ?? null,
     notes: tx.notes ?? null,
+    proofUrl: tx.proofUrl ?? null,
     createdAt: tx.createdAt.toISOString(),
     updatedAt: tx.updatedAt.toISOString(),
   };
