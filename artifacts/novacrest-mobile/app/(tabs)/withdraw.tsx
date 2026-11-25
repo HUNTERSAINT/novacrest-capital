@@ -4,15 +4,17 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useColors } from '@/hooks/useColors';
+import { useGetDashboard } from '@workspace/api-client-react';
 
 const ASSETS = ['BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP'];
-const API_BASE = `https://${(process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com').replace(/^https?:\\/\\//, '').replace(/\\/$/, '')}`;
+const API_BASE = `https://${process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com'}`;
 
 export default function WithdrawScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { token, user } = useAuth();
+  const { data: dashboard } = useGetDashboard();
   const [amount, setAmount] = useState('');
   const [asset, setAsset] = useState('USDT');
   const [address, setAddress] = useState('');
@@ -24,7 +26,7 @@ export default function WithdrawScreen() {
     const value = Number(amount);
     if (!token) { setError('Please sign in again.'); return; }
     if (!Number.isFinite(value) || value <= 0) { setError('Enter a valid withdrawal amount greater than zero.'); return; }
-    if (value > (user?.balance ?? 0)) { setError('The amount is greater than the available balance shown in your account. Refresh your dashboard and try again.'); return; }
+    if (value > (dashboard?.balance ?? user?.balance ?? 0)) { setError('The amount is greater than the available balance shown in your account. Refresh your dashboard and try again.'); return; }
     if (address.trim().length < 8) { setError('Enter a valid destination wallet address.'); return; }
     if (!network.trim()) { setError('Enter the destination network (for example, TRC20 or ERC20).'); return; }
     setError('');
@@ -62,7 +64,7 @@ export default function WithdrawScreen() {
 
       <View style={[s.balance, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Text style={[s.label, { color: colors.mutedForeground }]}>Available balance shown</Text>
-        <Text style={[s.balanceValue, { color: colors.primary }]}>${(user?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+        <Text style={[s.balanceValue, { color: colors.primary }]}>${(dashboard?.balance ?? user?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
       </View>
 
       <Text style={[s.label, { color: colors.foreground }]}>Asset</Text>
