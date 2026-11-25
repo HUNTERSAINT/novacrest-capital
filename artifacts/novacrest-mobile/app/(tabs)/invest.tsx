@@ -66,6 +66,13 @@ function InvestmentCard({ inv, colors }: { inv: Investment; colors: ReturnType<t
           <Text style={[invStyles.statValue, { color: colors.success }]}>{fmt(inv.profitEarned)}</Text>
         </View>
       </View>
+      {inv.slowSignalActive && (
+        <View style={{ backgroundColor: '#172b3b', borderColor: '#32607c', borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 }}>
+          <Text style={{ color: '#a9ddff', fontSize: 11, lineHeight: 16, fontWeight: '700' }}>
+            Slow Signal Mode is active for this investment. Its maturity date was adjusted by the platform; the current end date is shown above.
+          </Text>
+        </View>
+      )}
       {inv.status === 'active' && (
         <View style={[invStyles.progressBg, { backgroundColor: colors.border }]}>
           <View style={[invStyles.progressFill, { width: `${progress}%` as any, backgroundColor: colors.primary }]} />
