@@ -1,9 +1,13 @@
-import { Platform } from 'react-native';
+import React, { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ModeStatusBanner from '@/components/ModeStatusBanner';
+import { LowSignalProvider } from '@/contexts/LowSignalContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -11,17 +15,17 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
-import { Stack, router } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { setBaseUrl } from '@workspace/api-client-react';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { Stack, useRouter } from 'expo-router';
+import { useNotificationSetup } from '@/hooks/usePushNotifications';
 
-// Set API base URL at module level — outside any component
-setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+const API_DOMAIN = (process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com')
+  .replace(/^https?:\\/\\//, '')
+  .replace(/\\/$/, '');
+setBaseUrl(`https://${API_DOMAIN}`);
 
-// Configure how notifications are displayed when the app is in the foreground
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -32,50 +36,49 @@ if (Platform.OS !== 'web') {
   });
 }
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-import React, { useEffect, useRef } from 'react';
-import { useNotificationSetup } from '@/hooks/usePushNotifications';
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       staleTime: 30_000,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     },
   },
 });
 
 function RootLayoutNav() {
   const router = useRouter();
-  const responseListenerRef = useRef<Notifications.EventSubscription | null>(null);
 
-  // Listen for notification taps and deep-link to the relevant admin section
   useEffect(() => {
-    responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const section =
-          (response.notification.request.content.data as Record<string, string>)?.section ?? 'members';
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as {
+        screen?: string;
+        section?: string;
+      };
+      if (data?.screen === 'admin' || data?.section) {
         router.navigate({
           pathname: '/(tabs)/admin',
-          params: { section },
+          params: data.section ? { section: data.section } : { section: 'members' },
         });
-      },
-    );
-    return () => {
-      responseListenerRef.current?.remove();
-    };
+      }
+    });
+    return () => subscription.remove();
   }, [router]);
 
-  // Set up foreground notification handler
   useNotificationSetup();
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <View style={{ flex: 1 }}>
+      <ModeStatusBanner />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </View>
   );
 }
 
@@ -88,33 +91,8 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded, fontError]);
-
-  // Listen for notification taps and deep-link to the correct admin section
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const data = response.notification.request.content.data as {
-          screen?: string;
-          section?: string;
-        };
-        if (data?.screen === 'admin') {
-          // Navigate to the admin tab, passing the section as a query param
-          router.push({
-            pathname: '/(tabs)/admin',
-            params: data.section ? { section: data.section } : {},
-          });
-        }
-      },
-    );
-
-    return () => subscription.remove();
-  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 
@@ -123,11 +101,13 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <LowSignalProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </LowSignalProvider>
           </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
