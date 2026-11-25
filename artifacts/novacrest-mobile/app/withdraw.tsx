@@ -25,9 +25,9 @@ export default function WithdrawScreen() {
   const submit = async () => {
     const value = Number(amount);
     if (!token) { setError('Please sign in again.'); return; }
-    if (!Number.isFinite(value) || value <= 0) { setError('Enter a valid withdrawal amount greater than zero.'); return; }
+    if (!Number.isFinite(value) || value < 10) { setError('Minimum withdrawal is $10. Enter a valid amount.'); return; }
     if (value > (dashboard?.balance ?? user?.balance ?? 0)) { setError('The amount is greater than the available balance shown in your account. Refresh your dashboard and try again.'); return; }
-    if (address.trim().length < 8) { setError('Enter a valid destination wallet address.'); return; }
+    if (address.trim().length < 10) { setError('Enter a valid destination wallet address (at least 10 characters).'); return; }
     if (!network.trim()) { setError('Enter the destination network (for example, TRC20 or ERC20).'); return; }
     setError('');
     setLoading(true);
