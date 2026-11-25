@@ -1,0 +1,68 @@
+name: Build NovaCrest native Android APK
+
+on:
+  push:
+    branches:
+      - native-app-mode-fixes
+    paths:
+      - 'artifacts/novacrest-mobile/**'
+      - '.github/workflows/novacrest-native-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPO_PUBLIC_DOMAIN: novacrestfi.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Typecheck native app
+        run: pnpm --filter @workspace/novacrest-mobile typecheck
+
+      - name: Generate Android native project
+        working-directory: artifacts/novacrest-mobile
+        run: pnpm exec expo prebuild --platform android --no-install --clean
+
+      - name: Build installable debug APK
+        working-directory: artifacts/novacrest-mobile/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: novacrest-native-android-apk
+          path: artifacts/novacrest-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
