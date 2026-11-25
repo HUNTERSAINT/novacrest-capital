@@ -6,10 +6,9 @@ on:
     paths:
       - "android-wrapper/**"
       - ".github/workflows/novacrest-android.yml"
-  workflow_dispatch:
-  push:
     tags:
       - "novacrest-v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
