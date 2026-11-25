@@ -48,7 +48,7 @@ function ClassicTabLayout() {
   const isWeb = Platform.OS === 'web';
 
   const tabIcon = (
-    sf: string,
+    sf: React.ComponentProps<typeof SymbolView>['name'],
     featherName: React.ComponentProps<typeof Feather>['name'],
     color: string
   ) =>
