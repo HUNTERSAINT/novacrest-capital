@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
+import { useRouter } from 'expo-router';
 import { useGetInvestments, useGetPlans } from '@workspace/api-client-react';
 import type { Investment, Plan } from '@workspace/api-client-react';
 import { format } from 'date-fns';
@@ -89,6 +90,7 @@ const invStyles = StyleSheet.create({
 });
 
 function PlanCard({ plan, colors }: { plan: Plan; colors: ReturnType<typeof useColors> }) {
+  const router = useRouter();
   const tierColor = TIER_COLORS[plan.tier] ?? colors.primary;
   return (
     <View style={[planStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -121,6 +123,13 @@ function PlanCard({ plan, colors }: { plan: Plan; colors: ReturnType<typeof useC
           </View>
         ))}
       </View>
+      <TouchableOpacity
+        style={{ backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 16 }}
+        onPress={() => router.push({ pathname: '/purchase', params: { planId: String(plan.id) } })}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: colors.primaryForeground, fontSize: 13, fontWeight: '800' }}>Invest in this plan</Text>
+      </TouchableOpacity>
     </View>
   );
 }
