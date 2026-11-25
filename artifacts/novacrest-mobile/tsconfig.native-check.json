@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "app/_layout.tsx",
+    "app/deposit.tsx",
+    "app/withdraw.tsx",
+    "app/purchase.tsx",
+    "app/(tabs)/_layout.tsx",
+    "app/(tabs)/index.tsx",
+    "app/(tabs)/invest.tsx",
+    "app/(tabs)/transactions.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/(auth)/**/*.tsx",
+    "components/ModeStatusBanner.tsx",
+    "contexts/**/*.tsx",
+    "hooks/useColors.ts",
+    "hooks/usePushNotifications.ts"
+  ],
+  "exclude": [
+    "components/admin/**",
+    "app/(tabs)/admin.tsx"
+  ]
+}
