@@ -1,0 +1,16 @@
+{
+  "appId": "com.mazisaint.novacrestdemo",
+  "appName": "NovaCrest Demo",
+  "webDir": "www",
+  "server": {
+    "url": "https://novacrestfi.com",
+    "cleartext": false,
+    "allowNavigation": [
+      "novacrestfi.com",
+      "www.novacrestfi.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
