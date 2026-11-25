@@ -21,9 +21,7 @@ import * as Notifications from 'expo-notifications';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { useNotificationSetup } from '@/hooks/usePushNotifications';
 
-const API_DOMAIN = (process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com')
-  .replace(/^https?:\\/\\//, '')
-  .replace(/\\/$/, '');
+const API_DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com';
 setBaseUrl(`https://${API_DOMAIN}`);
 
 if (Platform.OS !== 'web') {
