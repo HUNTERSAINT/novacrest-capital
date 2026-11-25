@@ -87,8 +87,8 @@ export default function DashboardScreen() {
   const s = makeStyles(colors, insets);
 
   const quickActions = [
-    { label: 'Deposit', icon: 'arrow-down-circle' as const, onPress: () => router.push('/(tabs)/deposit') },
-    { label: 'Withdraw', icon: 'arrow-up-circle' as const, onPress: () => router.push('/(tabs)/withdraw') },
+    { label: 'Deposit', icon: 'arrow-down-circle' as const, onPress: () => router.push('/deposit') },
+    { label: 'Withdraw', icon: 'arrow-up-circle' as const, onPress: () => router.push('/withdraw') },
     { label: 'Invest', icon: 'trending-up' as const, onPress: () => router.push('/(tabs)/invest') },
     { label: 'Referrals', icon: 'users' as const, onPress: () => router.push('/(tabs)/profile') },
   ];
