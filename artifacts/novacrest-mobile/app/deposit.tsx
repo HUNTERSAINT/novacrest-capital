@@ -62,7 +62,7 @@ export default function DepositScreen() {
   const submit = async () => {
     const value = Number(amount);
     if (!token) { setError('Please sign in again.'); return; }
-    if (!Number.isFinite(value) || value <= 0) { setError('Enter a valid deposit amount greater than zero.'); return; }
+    if (!Number.isFinite(value) || value < 10) { setError('Minimum deposit is $10. Enter a valid amount.'); return; }
     if (!selected) { setError('Choose a deposit network/wallet first.'); return; }
     if (!proof) { setError('Choose a transaction screenshot or payment receipt.'); return; }
     setError('');
