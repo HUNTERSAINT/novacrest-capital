@@ -75,6 +75,9 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false, animation: 'fade' }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="deposit" options={{ headerShown: false }} />
+        <Stack.Screen name="withdraw" options={{ headerShown: false }} />
+        <Stack.Screen name="purchase" options={{ headerShown: false }} />
       </Stack>
     </View>
   );
