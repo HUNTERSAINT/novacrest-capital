@@ -93,11 +93,22 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {});
-  }, [fontsLoaded, fontError]);
+  const [fontFallbackReady, setFontFallbackReady] = useState(false);
 
-  if (!fontsLoaded && !fontError) return null;
+  // Font loading can stall on some Android devices/network conditions.
+  // Release the native splash and render with system font fallback after 2s.
+  useEffect(() => {
+    const timeout = setTimeout(() => setFontFallbackReady(true), 2000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError || fontFallbackReady) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, fontError, fontFallbackReady]);
+
+  if (!fontsLoaded && !fontError && !fontFallbackReady) return null;
 
   return (
     <SafeAreaProvider>
