@@ -63,7 +63,7 @@ jobs:
         run: pnpm run typecheck:libs
 
       - name: Typecheck native app
-        run: pnpm --filter @workspace/novacrest-mobile typecheck
+        run: pnpm --filter @workspace/novacrest-mobile exec tsc -p tsconfig.native-check.json --noEmit
 
       - name: Generate Android native project
         working-directory: artifacts/novacrest-mobile
