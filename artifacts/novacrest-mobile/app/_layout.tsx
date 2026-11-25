@@ -36,7 +36,6 @@ if (Platform.OS !== 'web') {
   });
 }
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -107,8 +106,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError, fontFallbackReady]);
-
-  if (!fontsLoaded && !fontError && !fontFallbackReady) return null;
 
   return (
     <SafeAreaProvider>
