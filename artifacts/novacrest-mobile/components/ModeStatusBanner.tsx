@@ -17,7 +17,7 @@ type InvestmentStatus = {
   endDate?: string;
 };
 
-const API_BASE = `https://${(process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com').replace(/^https?:\\/\\//, '').replace(/\\/$/, '')}`;
+const API_BASE = `https://${process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com'}`;
 
 async function fetchJson<T>(path: string, token: string): Promise<T> {
   const response = await fetch(`${API_BASE}/api${path}`, {
