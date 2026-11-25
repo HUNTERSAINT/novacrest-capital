@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/useColors';
 type Wallet = { id: number; cryptoType: string; network: string; label: string; address: string };
 type Proof = { uri: string; name: string; size?: number; mimeType: string };
 
-const API_BASE = `https://${(process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com').replace(/^https?:\\/\\//, '').replace(/\\/$/, '')}`;
+const API_BASE = `https://${process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com'}`;
 
 async function api<T>(path: string, token: string, method = 'GET', body?: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}/api${path}`, {
