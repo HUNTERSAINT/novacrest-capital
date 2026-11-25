@@ -1,0 +1,16 @@
+{
+  "name": "novacrest-demo-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private demo Android wrapper for NovaCrest Capital",
+  "scripts": {
+    "android": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}
