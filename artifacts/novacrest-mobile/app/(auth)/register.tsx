@@ -152,7 +152,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
     logoText: { fontFamily: 'serif', fontSize: 30, fontWeight: '700' as const, color: colors.foreground, letterSpacing: -0.5 },
     logoSub: { fontSize: 10, color: colors.mutedForeground, marginTop: 3, letterSpacing: 4, textTransform: 'uppercase' as const },
     card: { backgroundColor: '#0e0e11e6', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', padding: 24, borderRadius: 2, width: '100%', maxWidth: 520 },
-    heading: { fontSize: 20, fontWeight: '700' as const, color: colors.foreground, marginBottom: 6 },
+    heading: { fontFamily: 'serif', fontSize: 20, fontWeight: '700' as const, color: colors.foreground, marginBottom: 6 },
     sub: { fontSize: 14, color: colors.mutedForeground, marginBottom: 24 },
     errorBox: { backgroundColor: colors.destructive + '22', borderWidth: 1, borderColor: colors.destructive + '44', borderRadius: colors.radius, padding: 12, marginBottom: 16 },
     errorText: { color: colors.destructive, fontSize: 13 },
