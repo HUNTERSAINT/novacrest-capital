@@ -1,7 +1,6 @@
 import { Platform, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
@@ -127,6 +126,7 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) return <NativeTabLayout />;
+  // Use the themed custom tab bar on every platform so native system appearance
+  // cannot introduce a different light/glass interface from the website.
   return <ClassicTabLayout />;
 }
