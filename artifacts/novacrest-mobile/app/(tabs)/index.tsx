@@ -106,29 +106,32 @@ export default function DashboardScreen() {
         />
       }
     >
-      {/* Header */}
-      <View style={s.header}>
-        <View>
-          <Text style={s.greeting}>Good day,</Text>
-          <Text style={s.name} numberOfLines={1}>
-            {user?.fullName?.split(' ')[0] ?? 'Investor'}
-          </Text>
-        </View>
-        <View style={s.avatarWrap}>
-          <Text style={s.avatarText}>
-            {(user?.fullName?.[0] ?? 'N').toUpperCase()}
-          </Text>
+      {/* Website-matched portfolio hero */}
+      <View style={s.hero}>
+        <Text style={s.heroTitle}>Portfolio Overview</Text>
+        <Text style={s.heroDescription}>
+          Welcome back, {user?.fullName?.split(' ')[0] ?? 'Investor'}. Track your wealth accumulation and active investments.
+        </Text>
+        <View style={s.heroActions}>
+          <TouchableOpacity onPress={() => router.push('/deposit')} style={s.heroDeposit} activeOpacity={0.85}>
+            <Feather name="arrow-down-right" size={16} color="#09090b" />
+            <Text style={s.heroDepositText}>Deposit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/invest')} style={s.heroInvest} activeOpacity={0.85}>
+            <Feather name="arrow-up-right" size={16} color={colors.primaryForeground} />
+            <Text style={s.heroInvestText}>Invest</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Balance Card */}
       <LinearGradient
-        colors={['#1a1608', '#111008', colors.card]}
+        colors={['#17140a', '#0e0e11', colors.card]}
         style={s.balanceCard}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={[s.balanceBorder, { borderColor: colors.primary + '30' }]}>
+        <View style={[s.balanceBorder, { borderColor: 'rgba(255,255,255,0.10)' }]}>
           <Text style={s.balanceLabel}>Total Balance</Text>
           {isLoading ? (
             <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
@@ -210,7 +213,14 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       paddingBottom: Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90,
       paddingHorizontal: 20,
     },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
+    hero: { backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 2, padding: 20, marginBottom: 18 },
+    heroTitle: { fontFamily: 'serif', fontSize: 26, color: '#ffffff', marginBottom: 8 },
+    heroDescription: { fontSize: 13, lineHeight: 19, color: colors.mutedForeground, marginBottom: 18 },
+    heroActions: { flexDirection: 'row', gap: 10 },
+    heroDeposit: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#ffffff', paddingHorizontal: 16, height: 40, borderRadius: 2 },
+    heroDepositText: { color: '#09090b', fontSize: 13, fontWeight: '700' as const },
+    heroInvest: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.primary, borderWidth: 1, borderColor: 'rgba(217,165,32,0.5)', paddingHorizontal: 16, height: 40, borderRadius: 2 },
+    heroInvestText: { color: colors.primaryForeground, fontSize: 13, fontWeight: '700' as const },
     greeting: { fontSize: 13, color: colors.mutedForeground, fontWeight: '500' as const },
     name: { fontSize: 22, fontWeight: '700' as const, color: colors.foreground, marginTop: 2 },
     avatarWrap: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary + '25', borderWidth: 1.5, borderColor: colors.primary + '50', alignItems: 'center', justifyContent: 'center' },
@@ -218,7 +228,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
     balanceCard: { borderRadius: 2, marginBottom: 16, overflow: 'hidden' },
     balanceBorder: { borderWidth: 1, borderRadius: 2, padding: 24 },
     balanceLabel: { fontSize: 12, color: colors.mutedForeground, letterSpacing: 1.2, textTransform: 'uppercase' as const, marginBottom: 8 },
-    balanceValue: { fontSize: 42, fontWeight: '700' as const, color: colors.primary, letterSpacing: -1 },
+    balanceValue: { fontFamily: 'serif', fontSize: 38, fontWeight: '700' as const, color: colors.foreground, letterSpacing: -1 },
     balanceRow: { flexDirection: 'row', alignItems: 'center', marginTop: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.border },
     balanceStat: { flex: 1 },
     balanceStatLabel: { fontSize: 11, color: colors.mutedForeground, textTransform: 'uppercase' as const, letterSpacing: 0.8 },
