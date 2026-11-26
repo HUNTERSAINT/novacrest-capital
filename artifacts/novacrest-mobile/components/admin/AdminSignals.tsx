@@ -196,10 +196,10 @@ export function AdminSignals({ colors }: { colors: ReturnType<typeof useColors> 
 }
 
 const ss = (c: ReturnType<typeof useColors>) => StyleSheet.create({
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 4, marginBottom: 16 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 2, marginBottom: 16 },
   addBtnTxt: { fontSize: 14, fontWeight: '700' as const },
-  sigRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1, borderRadius: 4, marginBottom: 8, gap: 10 },
-  actionBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4, borderWidth: 1 },
+  sigRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1, borderRadius: 2, marginBottom: 8, gap: 10 },
+  actionBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 2, borderWidth: 1 },
   actionTxt: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 0.5 },
   sigTitle: { fontSize: 13, fontWeight: '600' as const },
   sigAsset: { fontSize: 12, marginTop: 2 },
@@ -216,12 +216,12 @@ const ss = (c: ReturnType<typeof useColors>) => StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700' as const, marginBottom: 14 },
   field: { marginBottom: 14 },
   label: { fontSize: 12, fontWeight: '500' as const, marginBottom: 6 },
-  input: { borderWidth: 1, borderRadius: 4, padding: 12, fontSize: 14 },
+  input: { borderWidth: 1, borderRadius: 2, padding: 12, fontSize: 14 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
-  saveBtn: { borderRadius: 4, paddingVertical: 14, alignItems: 'center', marginBottom: 10 },
+  saveBtn: { borderRadius: 2, paddingVertical: 14, alignItems: 'center', marginBottom: 10 },
   saveTxt: { fontSize: 15, fontWeight: '700' as const },
-  deleteBtn: { borderWidth: 1, borderRadius: 4, paddingVertical: 13, alignItems: 'center', marginBottom: 10 },
+  deleteBtn: { borderWidth: 1, borderRadius: 2, paddingVertical: 13, alignItems: 'center', marginBottom: 10 },
   deleteTxt: { fontSize: 14, fontWeight: '700' as const },
-  closeBtn: { borderRadius: 4, paddingVertical: 13, alignItems: 'center', borderWidth: 1 },
+  closeBtn: { borderRadius: 2, paddingVertical: 13, alignItems: 'center', borderWidth: 1 },
   closeTxt: { fontSize: 15, fontWeight: '600' as const },
 });
