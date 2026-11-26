@@ -1,33 +1,33 @@
 /**
- * Novacrest Capital design tokens — synced from artifacts/kingsaint/src/index.css
- * Dark-only theme matching the web app's single dark palette.
+ * Native theme tokens copied from artifacts/kingsaint/src/index.css.
+ * Keep the Android/iOS app on the same dark gold palette as novacrestfi.com.
  */
 const colors = {
   light: {
-    text: '#e8e3d5',
+    text: '#ebe8e0',
     tint: '#D9A520',
-    background: '#090a0f',
-    foreground: '#e8e3d5',
-    card: '#0d0f15',
-    cardForeground: '#e8e3d5',
+    background: '#09090b',
+    foreground: '#ebe8e0',
+    card: '#0e0e11',
+    cardForeground: '#ebe8e0',
     primary: '#D9A520',
-    primaryForeground: '#090a0f',
-    secondary: '#191b24',
-    secondaryForeground: '#e8e3d5',
-    muted: '#191b24',
-    mutedForeground: '#9e9a87',
+    primaryForeground: '#09090b',
+    secondary: '#1c1c22',
+    secondaryForeground: '#ebe8e0',
+    muted: '#1c1c22',
+    mutedForeground: '#a39e8f',
     accent: '#D9A520',
-    accentForeground: '#090a0f',
-    destructive: '#f04444',
+    accentForeground: '#09090b',
+    destructive: '#ef4444',
     destructiveForeground: '#ffffff',
-    border: '#272318',
-    input: '#272318',
+    border: '#2e2a1f',
+    input: '#2e2a1f',
     success: '#22c55e',
     successForeground: '#ffffff',
     warning: '#f59e0b',
-    warningForeground: '#090a0f',
+    warningForeground: '#09090b',
   },
-  radius: 2,
+  radius: 0,
 };
 
 export default colors;
