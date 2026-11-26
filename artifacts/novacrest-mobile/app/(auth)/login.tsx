@@ -140,7 +140,6 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
   StyleSheet.create({
     root: {
       flex: 1,
-      flex: 1,
       backgroundColor: colors.background,
     },
     scroll: {
