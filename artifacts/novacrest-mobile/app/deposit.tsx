@@ -148,7 +148,7 @@ export default function DepositScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   back: { paddingVertical: 8, alignSelf: 'flex-start' },
-  title: { fontSize: 28, fontWeight: '800', marginBottom: 8 },
+  title: { fontFamily: 'serif', fontSize: 28, fontWeight: '700', marginBottom: 8 },
   subtitle: { fontSize: 13, lineHeight: 19, marginBottom: 20 },
   label: { fontSize: 13, fontWeight: '700', marginBottom: 8, marginTop: 14 },
   help: { fontSize: 12, lineHeight: 17, marginTop: 4 },
