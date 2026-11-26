@@ -91,7 +91,7 @@ export default function PurchaseInvestmentScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   back: { paddingVertical: 8, alignSelf: 'flex-start' },
-  title: { fontSize: 28, fontWeight: '800', marginBottom: 14 },
+  title: { fontFamily: 'serif', fontSize: 28, fontWeight: '700', marginBottom: 14 },
   planName: { fontSize: 18, fontWeight: '800', marginBottom: 8 },
   body: { fontSize: 13, lineHeight: 19 },
   label: { fontSize: 13, fontWeight: '700', marginBottom: 8, marginTop: 18 },
