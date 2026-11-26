@@ -76,8 +76,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (data: LoginInput) => Promise<void>;
-  register: (data: RegisterInput) => Promise<void>;
+  login: (data: LoginInput) => Promise<User>;
+  register: (data: RegisterInput) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const login = async (data: LoginInput) => {
+  const login = async (data: LoginInput): Promise<User> => {
     const result = await apiLogin(data);
     _currentToken = result.token;
     setToken(result.token);
@@ -134,14 +134,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(TOKEN_KEY, result.token);
     // Register push notifications for admin users after login
     setupPushNotifications(result.token, result.user.role).catch(() => {});
+    return result.user;
   };
 
-  const register = async (data: RegisterInput) => {
+  const register = async (data: RegisterInput): Promise<User> => {
     const result = await apiRegister(data);
     _currentToken = result.token;
     setToken(result.token);
     setUser(result.user);
     await AsyncStorage.setItem(TOKEN_KEY, result.token);
+    return result.user;
   };
 
   const logout = async () => {
