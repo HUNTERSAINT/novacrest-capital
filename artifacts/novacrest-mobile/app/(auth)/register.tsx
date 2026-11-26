@@ -24,6 +24,8 @@ export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,8 +44,10 @@ export default function RegisterScreen() {
     try {
       await register({
         fullName: fullName.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
+        phone: phone.trim() || undefined,
+        country: country.trim() || undefined,
         referralCode: referralCode.trim() || undefined,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -88,6 +92,8 @@ export default function RegisterScreen() {
           { label: 'Full Name *', value: fullName, setter: setFullName, placeholder: 'James Whitfield', type: 'default' as const, secure: false },
           { label: 'Email Address *', value: email, setter: setEmail, placeholder: 'investor@example.com', type: 'email-address' as const, secure: false },
           { label: 'Password *', value: password, setter: setPassword, placeholder: '••••••••', type: 'default' as const, secure: true },
+          { label: 'Phone Number (optional)', value: phone, setter: setPhone, placeholder: '+1 (555) 000-0000', type: 'phone-pad' as const, secure: false },
+          { label: 'Country (optional)', value: country, setter: setCountry, placeholder: 'United States', type: 'default' as const, secure: false },
           { label: 'Referral Code (optional)', value: referralCode, setter: setReferralCode, placeholder: 'NOVA123', type: 'default' as const, secure: false },
         ].map((f) => (
           <View key={f.label} style={s.fieldGroup}>
@@ -98,7 +104,7 @@ export default function RegisterScreen() {
               placeholderTextColor={colors.mutedForeground}
               value={f.value}
               onChangeText={f.setter}
-              autoCapitalize={f.type === 'email-address' ? 'none' : 'words'}
+              autoCapitalize={f.secure || f.type === 'email-address' || f.label.includes('Referral') ? 'none' : 'words'}
               keyboardType={f.type}
               secureTextEntry={f.secure}
               autoComplete={f.secure ? 'new-password' : f.type === 'email-address' ? 'email' : 'off'}
