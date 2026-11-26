@@ -83,7 +83,7 @@ jobs:
             echo "KVM device unavailable; emulator may not boot on this runner."
           fi
 
-      - name: Test app launch in Android emulator
+      - name: Test app launch and auth navigation in Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -97,11 +97,65 @@ jobs:
             adb install artifacts/novacrest-mobile/android/app/build/outputs/apk/release/app-release.apk
             adb logcat -c
             adb shell am start -n com.novacrest.mobile/.MainActivity
-            sleep 30
+            sleep 25
+            adb shell uiautomator dump /sdcard/login.xml
+            adb pull /sdcard/login.xml artifacts/novacrest-mobile/android-startup-test/login.xml
+            adb shell screencap -p /sdcard/login.png
+            adb pull /sdcard/login.png artifacts/novacrest-mobile/android-startup-test/login.png
+            grep -q "Member Access" artifacts/novacrest-mobile/android-startup-test/login.xml
+
+            python3 - <<'PY'
+            import re
+            import subprocess
+            import xml.etree.ElementTree as ET
+            def tap_text(xml_path, target):
+                root = ET.parse(xml_path).getroot()
+                for node in root.iter('node'):
+                    label = (node.attrib.get('text', '') + ' ' + node.attrib.get('content-desc', '')).strip().lower()
+                    if target.lower() in label:
+                        bounds = node.attrib.get('bounds', '')
+                        match = re.match(r'\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]', bounds)
+                        if match:
+                            x1,y1,x2,y2 = map(int, match.groups())
+                            subprocess.run(['adb','shell','input','tap',str((x1+x2)//2),str((y1+y2)//2)],check=True)
+                            return
+                raise SystemExit('Could not find tappable text: ' + target)
+            tap_text('artifacts/novacrest-mobile/android-startup-test/login.xml','Apply for membership')
+            PY
+            sleep 4
+            adb shell uiautomator dump /sdcard/register.xml
+            adb pull /sdcard/register.xml artifacts/novacrest-mobile/android-startup-test/register.xml
+            adb shell screencap -p /sdcard/register.png
+            adb pull /sdcard/register.png artifacts/novacrest-mobile/android-startup-test/register.png
+            grep -q "Create Account" artifacts/novacrest-mobile/android-startup-test/register.xml
+            grep -q "Apply for Membership" artifacts/novacrest-mobile/android-startup-test/register.xml
+
+            python3 - <<'PY'
+            import re
+            import subprocess
+            import xml.etree.ElementTree as ET
+            root = ET.parse('artifacts/novacrest-mobile/android-startup-test/register.xml').getroot()
+            for node in root.iter('node'):
+                label = (node.attrib.get('text', '') + ' ' + node.attrib.get('content-desc', '')).strip().lower()
+                if label == 'sign in' or 'sign in' == node.attrib.get('text','').strip().lower():
+                    match = re.match(r'\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]', node.attrib.get('bounds',''))
+                    if match:
+                        x1,y1,x2,y2 = map(int, match.groups())
+                        subprocess.run(['adb','shell','input','tap',str((x1+x2)//2),str((y1+y2)//2)],check=True)
+                        break
+            else:
+                raise SystemExit('Could not find Sign in link on registration screen')
+            PY
+            sleep 3
+            adb shell uiautomator dump /sdcard/login-return.xml
+            adb pull /sdcard/login-return.xml artifacts/novacrest-mobile/android-startup-test/login-return.xml
+            grep -q "Member Access" artifacts/novacrest-mobile/android-startup-test/login-return.xml
+
             adb logcat -d > artifacts/novacrest-mobile/android-startup-test/logcat.txt
-            adb shell screencap -p /sdcard/startup.png
-            adb pull /sdcard/startup.png artifacts/novacrest-mobile/android-startup-test/startup.png
-            if grep -qE 'FATAL EXCEPTION|Unable to load script|ReactNativeJS.*(Error|error)' artifacts/novacrest-mobile/android-startup-test/logcat.txt; then\n              echo 'App startup errors detected in emulator log' >&2\n              exit 1\n            fi
+            if grep -qE 'FATAL EXCEPTION|Unable to load script|ReactNativeJS.*(Error|error)' artifacts/novacrest-mobile/android-startup-test/logcat.txt; then
+              echo 'App startup/navigation errors detected in emulator log' >&2
+              exit 1
+            fi
 
       - name: Upload emulator startup diagnostics
         if: always()
