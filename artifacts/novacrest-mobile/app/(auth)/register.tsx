@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function RegisterScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { register } = useAuth();
 
   const [fullName, setFullName] = useState('');
@@ -46,6 +47,7 @@ export default function RegisterScreen() {
         referralCode: referralCode.trim() || undefined,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/(tabs)');
     } catch (e: any) {
       setError(e?.message || 'Registration failed. Please try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
