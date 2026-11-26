@@ -35,7 +35,7 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
     try {
-      const authenticatedUser = await login({ email: email.trim(), password });
+      const authenticatedUser = await login({ email: email.trim().toLowerCase(), password });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace(authenticatedUser.role === 'admin' ? '/(tabs)/admin' : '/(tabs)');
     } catch (e: any) {
@@ -102,6 +102,7 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              autoCapitalize="none"
               autoComplete="password"
               returnKeyType="done"
               onSubmitEditing={handleLogin}
