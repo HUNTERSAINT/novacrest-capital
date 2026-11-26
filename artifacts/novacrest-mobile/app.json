@@ -2,7 +2,7 @@
   "expo": {
     "name": "Novacrest Capital Mobile",
     "slug": "novacrest-mobile",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "novacrest-mobile",
@@ -11,14 +11,15 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#090a0f"
+      "backgroundColor": "#09090b"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.novacrest.mobile"
     },
     "android": {
-      "package": "com.novacrest.mobile"
+      "package": "com.novacrest.mobile",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/images/icon.png"
