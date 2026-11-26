@@ -35,9 +35,9 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
+      const authenticatedUser = await login({ email: email.trim(), password });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
+      router.replace(authenticatedUser.role === 'admin' ? '/(tabs)/admin' : '/(tabs)');
     } catch (e: any) {
       const msg = e?.message || 'Invalid email or password.';
       setError(msg.includes('Invalid') ? 'Invalid email or password.' : msg);
