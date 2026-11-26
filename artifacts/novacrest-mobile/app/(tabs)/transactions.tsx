@@ -80,7 +80,7 @@ function TxItem({ tx, colors }: { tx: Transaction; colors: ReturnType<typeof use
 }
 
 const txStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, borderRadius: 4, marginBottom: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, borderRadius: 2, marginBottom: 10 },
   iconWrap: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   info: { flex: 1 },
   type: { fontSize: 14, fontWeight: '600' as const },
@@ -169,7 +169,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       backgroundColor: colors.background,
       paddingBottom: 12,
     },
-    pageTitle: { fontSize: 26, fontWeight: '700' as const, color: colors.foreground, marginBottom: 16 },
+    pageTitle: { fontSize: 26, fontWeight: '700' as const, fontFamily: 'serif', color: colors.foreground, marginBottom: 16 },
     filtersWrap: { gap: 8, paddingBottom: 4 },
     chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
     chipText: { fontSize: 13, fontWeight: '600' as const },
