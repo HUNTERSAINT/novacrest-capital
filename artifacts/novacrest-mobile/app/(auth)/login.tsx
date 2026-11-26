@@ -64,13 +64,13 @@ export default function LoginScreen() {
           <Text style={s.logoText}>
             Novacrest<Text style={{ color: colors.primary }}>.</Text>
           </Text>
-          <Text style={s.logoSub}>Premium Investment Platform</Text>
+          <Text style={s.logoSub}>CAPITAL</Text>
         </View>
 
         {/* Card */}
         <View style={s.card}>
           <Text style={s.heading}>Member Access</Text>
-          <Text style={s.sub}>Sign in to your investment account</Text>
+          <Text style={s.sub}>Enter your credentials to access your portfolio.</Text>
 
           {!!error && (
             <View style={s.errorBox}>
@@ -140,12 +140,14 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
   StyleSheet.create({
     root: {
       flex: 1,
+      flex: 1,
       backgroundColor: colors.background,
     },
     scroll: {
       flexGrow: 1,
       justifyContent: 'center',
       paddingHorizontal: 24,
+      alignItems: 'center',
       paddingTop: (Platform.OS === 'web' ? 67 : insets.top) + 32,
       paddingBottom: (Platform.OS === 'web' ? 34 : insets.bottom) + 32,
     },
@@ -154,24 +156,27 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       marginBottom: 40,
     },
     logoText: {
-      fontSize: 32,
+      fontFamily: 'serif',
+      fontSize: 30,
       fontWeight: '700' as const,
       color: colors.foreground,
       letterSpacing: -0.5,
     },
     logoSub: {
-      fontSize: 13,
+      fontSize: 10,
       color: colors.mutedForeground,
-      marginTop: 4,
-      letterSpacing: 1,
+      marginTop: 3,
+      letterSpacing: 4,
       textTransform: 'uppercase' as const,
     },
     card: {
-      backgroundColor: colors.card,
+      backgroundColor: '#0e0e11e6',
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: 'rgba(255,255,255,0.10)',
       padding: 24,
-      borderRadius: colors.radius,
+      borderRadius: 2,
+      width: '100%',
+      maxWidth: 448,
     },
     heading: {
       fontSize: 22,
@@ -206,10 +211,10 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       fontWeight: '500' as const,
     },
     input: {
-      backgroundColor: colors.background,
+      backgroundColor: 'rgba(9,9,11,0.5)',
       borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: colors.radius,
+      borderColor: 'rgba(255,255,255,0.10)',
+      borderRadius: 2,
       padding: 14,
       fontSize: 15,
       color: colors.foreground,
@@ -217,7 +222,9 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
     btn: {
       backgroundColor: colors.primary,
       paddingVertical: 15,
-      borderRadius: colors.radius,
+      borderRadius: 2,
+      borderWidth: 1,
+      borderColor: 'rgba(217,165,32,0.5)',
       alignItems: 'center',
       marginTop: 8,
     },
