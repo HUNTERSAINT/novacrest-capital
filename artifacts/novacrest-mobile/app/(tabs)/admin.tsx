@@ -161,7 +161,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       justifyContent: 'space-between',
       marginBottom: 14,
     },
-    pageTitle: { fontSize: 24, fontWeight: '700' as const, color: colors.foreground },
+    pageTitle: { fontSize: 24, fontWeight: '700' as const, fontFamily: 'serif', color: colors.foreground },
     adminBadge: {
       flexDirection: 'row', alignItems: 'center', gap: 5,
       paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1,
@@ -169,7 +169,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
     adminBadgeText: { fontSize: 10, fontWeight: '700' as const, letterSpacing: 0.8 },
     statsStrip: { gap: 8, paddingBottom: 12 },
     statItem: {
-      borderWidth: 1, borderRadius: 4, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center',
+      borderWidth: 1, borderRadius: 2, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center',
     },
     statValue: { fontSize: 14, fontWeight: '700' as const },
     statLabel: { fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 0.6, marginTop: 2 },
