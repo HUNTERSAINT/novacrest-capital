@@ -69,9 +69,9 @@ jobs:
         working-directory: artifacts/novacrest-mobile
         run: pnpm exec expo prebuild --platform android --no-install --clean
 
-      - name: Build installable debug APK
+      - name: Build standalone release APK
         working-directory: artifacts/novacrest-mobile/android
-        run: ./gradlew --no-daemon assembleDebug
+        run: ./gradlew --no-daemon assembleRelease
 
       - name: Enable KVM for Android emulator
         run: |
@@ -94,16 +94,14 @@ jobs:
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot
           script: |
             mkdir -p artifacts/novacrest-mobile/android-startup-test
-            adb install artifacts/novacrest-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+            adb install artifacts/novacrest-mobile/android/app/build/outputs/apk/release/app-release.apk
             adb logcat -c
             adb shell am start -n com.novacrest.mobile/.MainActivity
             sleep 30
             adb logcat -d > artifacts/novacrest-mobile/android-startup-test/logcat.txt
             adb shell screencap -p /sdcard/startup.png
             adb pull /sdcard/startup.png artifacts/novacrest-mobile/android-startup-test/startup.png
-            if grep -E 'FATAL EXCEPTION|Unable to load script|ReactNativeJS.*(Error|error)' artifacts/novacrest-mobile/android-startup-test/logcat.txt; then
-              exit 1
-            fi
+            grep -qE 'FATAL EXCEPTION|Unable to load script|ReactNativeJS.*(Error|error)' artifacts/novacrest-mobile/android-startup-test/logcat.txt && exit 1 || true
 
       - name: Upload emulator startup diagnostics
         if: always()
@@ -115,6 +113,7 @@ jobs:
           retention-days: 7
 
       - name: Upload APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: novacrest-native-android-apk
