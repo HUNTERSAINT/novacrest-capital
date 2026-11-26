@@ -95,9 +95,9 @@ const s = StyleSheet.create({
   planName: { fontSize: 18, fontWeight: '800', marginBottom: 8 },
   body: { fontSize: 13, lineHeight: 19 },
   label: { fontSize: 13, fontWeight: '700', marginBottom: 8, marginTop: 18 },
-  input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
-  compound: { borderWidth: 1, borderRadius: 10, padding: 14, marginTop: 18, gap: 8 },
+  input: { borderWidth: 1, borderRadius: 2, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
+  compound: { borderWidth: 1, borderRadius: 2, padding: 14, marginTop: 18, gap: 8 },
   error: { fontSize: 13, lineHeight: 18, marginTop: 12 },
-  button: { minHeight: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  button: { minHeight: 50, borderRadius: 2, alignItems: 'center', justifyContent: 'center', marginTop: 18 },
   disclaimer: { fontSize: 11, lineHeight: 16, marginTop: 14 },
 });
