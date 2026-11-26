@@ -67,7 +67,7 @@ function InvestmentCard({ inv, colors }: { inv: Investment; colors: ReturnType<t
         </View>
       </View>
       {inv.slowSignalActive && (
-        <View style={{ backgroundColor: '#172b3b', borderColor: '#32607c', borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 }}>
+        <View style={{ backgroundColor: '#172b3b', borderColor: '#32607c', borderWidth: 1, borderRadius: 2, padding: 10, marginBottom: 12 }}>
           <Text style={{ color: '#a9ddff', fontSize: 11, lineHeight: 16, fontWeight: '700' }}>
             Slow Signal Mode is active for this investment. Its maturity date was adjusted by the platform; the current end date is shown above.
           </Text>
@@ -83,7 +83,7 @@ function InvestmentCard({ inv, colors }: { inv: Investment; colors: ReturnType<t
 }
 
 const invStyles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 4, padding: 16, marginBottom: 12 },
+  card: { borderWidth: 1, borderRadius: 2, padding: 16, marginBottom: 12 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
   planName: { fontSize: 15, fontWeight: '600' as const, maxWidth: 200 },
   dates: { fontSize: 12, marginTop: 3 },
@@ -131,7 +131,7 @@ function PlanCard({ plan, colors }: { plan: Plan; colors: ReturnType<typeof useC
         ))}
       </View>
       <TouchableOpacity
-        style={{ backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 16 }}
+        style={{ backgroundColor: colors.primary, borderRadius: 2, paddingVertical: 12, alignItems: 'center', marginTop: 16 }}
         onPress={() => router.push({ pathname: '/purchase', params: { planId: String(plan.id) } })}
         activeOpacity={0.8}
       >
@@ -142,7 +142,7 @@ function PlanCard({ plan, colors }: { plan: Plan; colors: ReturnType<typeof useC
 }
 
 const planStyles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 4, padding: 18, marginBottom: 12 },
+  card: { borderWidth: 1, borderRadius: 2, padding: 18, marginBottom: 12 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   tierBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
   tierText: { fontSize: 10, fontWeight: '700' as const, letterSpacing: 1 },
@@ -232,7 +232,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       paddingBottom: Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90,
       paddingHorizontal: 20,
     },
-    pageTitle: { fontSize: 26, fontWeight: '700' as const, color: colors.foreground, marginBottom: 24 },
+    pageTitle: { fontSize: 26, fontWeight: '700' as const, fontFamily: 'serif', color: colors.foreground, marginBottom: 24 },
     section: { marginBottom: 28 },
     sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: colors.foreground, marginBottom: 14 },
     empty: { alignItems: 'center', paddingVertical: 28, gap: 8 },
