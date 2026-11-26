@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -36,6 +37,7 @@ export default function LoginScreen() {
     try {
       await login({ email: email.trim(), password });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/(tabs)');
     } catch (e: any) {
       const msg = e?.message || 'Invalid email or password.';
       setError(msg.includes('Invalid') ? 'Invalid email or password.' : msg);
