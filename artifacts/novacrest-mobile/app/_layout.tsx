@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, View, StatusBar } from 'react-native';
+import { Platform, View, StatusBar, Text, TextInput } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -20,6 +20,18 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { useNotificationSetup } from '@/hooks/usePushNotifications';
+
+// Apply the website's clean sans-serif typography to native body text and fields.
+const NativeText = Text as unknown as { defaultProps?: Record<string, any> };
+NativeText.defaultProps = {
+  ...NativeText.defaultProps,
+  style: [{ fontFamily: 'Inter_400Regular' }, NativeText.defaultProps?.style],
+};
+const NativeTextInput = TextInput as unknown as { defaultProps?: Record<string, any> };
+NativeTextInput.defaultProps = {
+  ...NativeTextInput.defaultProps,
+  style: [{ fontFamily: 'Inter_400Regular' }, NativeTextInput.defaultProps?.style],
+};
 
 const API_DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || 'novacrestfi.com';
 setBaseUrl(`https://${API_DOMAIN}`);
