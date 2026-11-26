@@ -178,6 +178,7 @@ const makeStyles = (colors: ReturnType<typeof useColors>, insets: { top: number;
       maxWidth: 448,
     },
     heading: {
+      fontFamily: 'serif',
       fontSize: 22,
       fontWeight: '700' as const,
       color: colors.foreground,
